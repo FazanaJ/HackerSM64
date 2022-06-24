@@ -8,8 +8,8 @@ void intro_peach_set_pos_and_opacity(struct Object *obj, f32 targetOpacity, f32 
     Vec3f newPos;
     s16 focusPitch, focusYaw;
 
-    vec3f_get_angle(gLakituState.pos, gLakituState.focus, &focusPitch, &focusYaw);
-    vec3f_set_dist_and_angle(gLakituState.pos, newPos, obj->oIntroPeachDistToCamera,
+    vec3f_get_angle(gLakituState[gCurrentMario].pos, gLakituState[gCurrentMario].focus, &focusPitch, &focusYaw);
+    vec3f_set_dist_and_angle(gLakituState[gCurrentMario].pos, newPos, obj->oIntroPeachDistToCamera,
                              obj->oIntroPeachPitchFromFocus + focusPitch,
                              obj->oIntroPeachYawFromFocus + focusYaw);
     vec3f_copy(&obj->oPosVec, newPos);

@@ -151,20 +151,20 @@ void bhv_camera_lakitu_update(void) {
                     break;
             }
         } else {
-            f32 mirroredX = CASTLE_MIRROR_X - gLakituState.curPos[0];
+            f32 mirroredX = CASTLE_MIRROR_X - gLakituState[0].curPos[0];
 
-            if (gLakituState.curPos[0] < 1700.0f || mirroredX < 0.0f) {
+            if (gLakituState[0].curPos[0] < 1700.0f || mirroredX < 0.0f) {
                 cur_obj_hide();
             } else {
                 cur_obj_unhide();
-                vec3f_copy(&o->oPosVec, gLakituState.curPos);
+                vec3f_copy(&o->oPosVec, gLakituState[0].curPos);
 
-                o->oHomeX = gLakituState.curFocus[0];
-                o->oHomeZ = gLakituState.curFocus[2];
+                o->oHomeX = gLakituState[0].curFocus[0];
+                o->oHomeZ = gLakituState[0].curFocus[2];
 
                 o->oFaceAngleYaw = -cur_obj_angle_to_home();
                 o->oFaceAnglePitch = atan2s(cur_obj_lateral_dist_to_home(),
-                                            o->oPosY - gLakituState.curFocus[1]);
+                                            o->oPosY - gLakituState[0].curFocus[1]);
 
                 o->oPosX = CASTLE_MIRROR_X + mirroredX;
             }

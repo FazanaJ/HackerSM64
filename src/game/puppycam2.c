@@ -1295,28 +1295,28 @@ extern struct PlayerGeometry sMarioGeometry;
 
 // Applies the PuppyCam values to the actual game's camera, giving the final product.
 static void puppycam_apply(void) {
-    vec3f_set(gLakituState.pos,       (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
-    vec3f_set(gLakituState.goalPos,   (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
-    vec3f_set(gLakituState.curPos,    (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
+    vec3f_set(gLakituState[gCurrentMario].pos,       (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
+    vec3f_set(gLakituState[gCurrentMario].goalPos,   (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
+    vec3f_set(gLakituState[gCurrentMario].curPos,    (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
     vec3f_set(gCamera->pos,           (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
     vec3f_set(sOldPosition,           (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
 
-    vec3f_set(gLakituState.focus,     (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
-    vec3f_set(gLakituState.goalFocus, (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
-    vec3f_set(gLakituState.curFocus,  (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
+    vec3f_set(gLakituState[gCurrentMario].focus,     (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
+    vec3f_set(gLakituState[gCurrentMario].goalFocus, (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
+    vec3f_set(gLakituState[gCurrentMario].curFocus,  (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
     vec3f_set(gCamera->focus,         (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
     vec3f_set(sOldFocus,              (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
 
     gCamera->yaw         = gPuppyCam.yaw;
     gCamera->nextYaw     = gPuppyCam.yaw;
 
-    gLakituState.yaw     = gPuppyCam.yaw;
-    gLakituState.nextYaw = gPuppyCam.yaw;
-    gLakituState.oldYaw  = gPuppyCam.yaw;
+    gLakituState[gCurrentMario].yaw     = gPuppyCam.yaw;
+    gLakituState[gCurrentMario].nextYaw = gPuppyCam.yaw;
+    gLakituState[gCurrentMario].oldYaw  = gPuppyCam.yaw;
 
-    gLakituState.mode    = gCamera->mode;
-    gLakituState.defMode = gCamera->defMode;
-    gLakituState.roll    = 0;
+    gLakituState[gCurrentMario].mode    = gCamera->mode;
+    gLakituState[gCurrentMario].defMode = gCamera->defMode;
+    gLakituState[gCurrentMario].roll    = 0;
 
     // Commented out simply because vanilla SM64 has this always set sometimes, and relies on certain camera modes to apply secondary foci.
     // Uncomment to have fun with certain angles.
