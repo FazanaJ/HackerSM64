@@ -82,7 +82,7 @@ struct CreditsEntry {
 
 extern struct CreditsEntry *gCurrCreditsEntry;
 
-extern struct MarioState gMarioStates[];
+extern struct MarioState gMarioStates[NUM_PLAYERS];
 extern struct MarioState *gMarioState;
 
 extern s16 sCurrPlayMode;

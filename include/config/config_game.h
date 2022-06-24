@@ -11,6 +11,10 @@
 */
 // #define ENABLE_VANILLA_LEVEL_SPECIFIC_CHECKS
 
+// Leave at 1 to keep the game single player.
+// Set it up to 4 to allow up to 4 players to play simultaneously.
+#define NUM_PLAYERS 4
+
 // Disable lives and hide the lives counter
 #define DISABLE_LIVES
 

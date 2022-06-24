@@ -35,6 +35,7 @@ struct RumbleSettings {
 };
 
 extern struct Config gConfig;
+extern u8 gNumPlayers;
 
 // extern OSThread gUnkThread;
 extern OSThread gIdleThread;

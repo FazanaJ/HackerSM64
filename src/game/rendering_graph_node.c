@@ -75,6 +75,9 @@ s16 gCurrAnimFrame;
 f32 gCurrAnimTranslationMultiplier;
 u16 *gCurrAnimAttribute;
 s16 *gCurrAnimData;
+u8 gCurrPlayerGraph;
+u8 gTempPlayerCount;
+u8 gSplitType = 0;
 
 struct AllocOnlyPool *gDisplayListHeap;
 
@@ -500,6 +503,14 @@ void geo_process_perspective(struct GraphNodePerspective *node) {
 #else
         sAspectRatio = 4.0f / 3.0f; // 1.33333f
 #endif
+
+        if (gNumPlayers == 2) {
+            if (gSplitType == 0) {
+                sAspectRatio /= 2.0f;
+            } else {
+                sAspectRatio *= 2.0f;
+            }
+        }
 
         guPerspective(mtx, &perspNorm, node->fov, sAspectRatio, node->near / (f32)WORLD_SCALE, node->far / (f32)WORLD_SCALE, 1.0f);
         gSPPerspNormalize(gDisplayListHead++, perspNorm);
@@ -1233,6 +1244,72 @@ void geo_process_node_and_siblings(struct GraphNode *firstNode) {
     } while (iterateChildren && (curGraphNode = curGraphNode->next) != firstNode);
 }
 
+void set_viewport_size(Vp *viewport, struct GraphNodeRoot *node) {
+    f32 pos[2] = {0.0f, 0.0f};
+    f32 size[2] = {0.0f, 0.0f};
+    switch (gCurrPlayerGraph) {
+        case 0:
+            if (gTempPlayerCount == 1) {
+                pos[0] = node->x * 4;
+                pos[1] = node->y * 4;
+                size[0] = node->width * 4;
+                size[1] = node->height * 4;
+            } else if (gTempPlayerCount == 2) {
+                if (gSplitType == 0) { 
+                    pos[0] = node->x * 2;
+                    pos[1] = node->y * 4;
+                    size[0] = node->width * 2;
+                    size[1] = node->height * 4;
+                } else {
+                    pos[0] = node->x * 4;
+                    pos[1] = node->y * 2;
+                    size[0] = node->width * 4;
+                    size[1] = node->height * 2;
+                }
+            } else {
+                pos[0] = node->x * 2;
+                pos[1] = node->y * 2;
+                size[0] = node->width * 2;
+                size[1] = node->height * 2;
+            }
+        break;
+        case 1:
+            if (gTempPlayerCount == 2) {
+                if (gSplitType == 0) { 
+                    pos[0] = node->x * 6;
+                    pos[1] = node->y * 4;
+                    size[0] = node->width * 2;
+                    size[1] = node->height * 4;
+                } else {
+                    pos[0] = node->x * 4;
+                    pos[1] = node->y * 6;
+                    size[0] = node->width * 4;
+                    size[1] = node->height * 2;
+                }
+            } else {
+                pos[0] = node->x * 6;
+                pos[1] = node->y * 2;
+                size[0] = node->width * 2;
+                size[1] = node->height *2;
+            }
+        break;
+        case 2:
+            pos[0] = node->x * 2;
+            pos[1] = node->y * 6;
+            size[0] = node->width * 2;
+            size[1] = node->height * 2;
+        break;
+        case 3:
+            pos[0] = node->x * 6;
+            pos[1] = node->y * 6;
+            size[0] = node->width * 2;
+            size[1] = node->height * 2;
+        break;
+    }
+    vec3s_set(viewport->vp.vtrans, pos[0], pos[1], 511);
+    vec3s_set(viewport->vp.vscale, size[0], size[1], 511);
+}
+
 /**
  * Process a root node. This is the entry point for processing the scene graph.
  * The root node itself sets up the viewport, then all its children are processed
@@ -1241,42 +1318,59 @@ void geo_process_node_and_siblings(struct GraphNode *firstNode) {
 void geo_process_root(struct GraphNodeRoot *node, Vp *b, Vp *c, s32 clearColor) {
     if (node->node.flags & GRAPH_RENDER_ACTIVE) {
         Mtx *initialMatrix;
-        Vp *viewport = alloc_display_list(sizeof(*viewport));
 
-        gDisplayListHeap = alloc_only_pool_init(main_pool_available() - sizeof(struct AllocOnlyPool), MEMORY_POOL_LEFT);
-        initialMatrix = alloc_display_list(sizeof(*initialMatrix));
-        gMatStackIndex = 0;
-        gCurrAnimType = ANIM_TYPE_NONE;
-        vec3s_set(viewport->vp.vtrans, node->x * 4, node->y * 4, 511);
-        vec3s_set(viewport->vp.vscale, node->width * 4, node->height * 4, 511);
+        if (gPlayer1Controller->buttonPressed & L_JPAD)
+            gNumPlayers--;
+        if (gPlayer1Controller->buttonPressed & R_JPAD)
+            gNumPlayers++;
+        if (gPlayer1Controller->buttonPressed & D_JPAD)
+            gSplitType ^= 1;
 
-        if (b != NULL) {
-            clear_framebuffer(clearColor);
-            make_viewport_clip_rect(b);
-            *viewport = *b;
+        gNumPlayers = CLAMP(gNumPlayers, 1, 4);
+        
+        if (gCurrLevelNum < 3) {
+            gTempPlayerCount = 1;
+        } else {
+            gTempPlayerCount = gNumPlayers;
         }
 
-        else if (c != NULL) {
-            clear_framebuffer(clearColor);
-            make_viewport_clip_rect(c);
-        }
+        for (gCurrPlayerGraph = 0; gCurrPlayerGraph < gTempPlayerCount; gCurrPlayerGraph++) {
+            Vp *viewport = alloc_display_list(sizeof(*viewport));
 
-        mtxf_identity(gMatStack[gMatStackIndex]);
-        mtxf_to_mtx(initialMatrix, gMatStack[gMatStackIndex]);
-        gMatStackFixed[gMatStackIndex] = initialMatrix;
-        gSPViewport(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(viewport));
-        gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(gMatStackFixed[gMatStackIndex]),
-                  G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
-        gCurGraphNodeRoot = node;
-        if (node->node.children != NULL) {
-            geo_process_node_and_siblings(node->node.children);
+            gDisplayListHeap = alloc_only_pool_init(main_pool_available() - sizeof(struct AllocOnlyPool), MEMORY_POOL_LEFT);
+            initialMatrix = alloc_display_list(sizeof(*initialMatrix));
+            gMatStackIndex = 0;
+            gCurrAnimType = ANIM_TYPE_NONE;
+            set_viewport_size(viewport, node);
+
+            if (b != NULL) {
+                clear_framebuffer(clearColor);
+                make_viewport_clip_rect(b);
+                *viewport = *b;
+            }
+
+            else if (c != NULL) {
+                clear_framebuffer(clearColor);
+                make_viewport_clip_rect(c);
+            }
+
+            mtxf_identity(gMatStack[gMatStackIndex]);
+            mtxf_to_mtx(initialMatrix, gMatStack[gMatStackIndex]);
+            gMatStackFixed[gMatStackIndex] = initialMatrix;
+            gSPViewport(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(viewport));
+            gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(gMatStackFixed[gMatStackIndex]),
+                    G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+            gCurGraphNodeRoot = node;
+            if (node->node.children != NULL) {
+                geo_process_node_and_siblings(node->node.children);
+            }
+            gCurGraphNodeRoot = NULL;
+    #ifdef VANILLA_DEBUG
+            if (gShowDebugText) {
+                print_text_fmt_int(180, 36, "MEM %d", gDisplayListHeap->totalSpace - gDisplayListHeap->usedSpace);
+            }
+    #endif
+            main_pool_free(gDisplayListHeap);
         }
-        gCurGraphNodeRoot = NULL;
-#ifdef VANILLA_DEBUG
-        if (gShowDebugText) {
-            print_text_fmt_int(180, 36, "MEM %d", gDisplayListHeap->totalSpace - gDisplayListHeap->usedSpace);
-        }
-#endif
-        main_pool_free(gDisplayListHeap);
     }
 }
