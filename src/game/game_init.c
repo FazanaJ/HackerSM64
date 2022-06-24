@@ -29,9 +29,10 @@
 #include "puppycam2.h"
 #include "debug_box.h"
 #include "vc_check.h"
+#include "level_update.h"
 
 // First 3 controller slots
-struct Controller gControllers[3];
+struct Controller gControllers[4];
 
 // Gfx handlers
 struct SPTask *gGfxSPTask;
@@ -67,9 +68,9 @@ uintptr_t gPhysicalFramebuffers[3];
 uintptr_t gPhysicalZBuffer;
 
 // Mario Anims and Demo allocation
-void *gMarioAnimsMemAlloc;
+void *gMarioAnimsMemAlloc[NUM_PLAYERS];
 void *gDemoInputsMemAlloc;
-struct DmaHandlerList gMarioAnimsBuf;
+struct DmaHandlerList gMarioAnimsBuf[NUM_PLAYERS];
 struct DmaHandlerList gDemoInputsBuf;
 
 // General timer that runs as the game starts
@@ -603,7 +604,7 @@ void read_controller_inputs(s32 threadID) {
     run_demo_inputs();
 #endif
 
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < MAX(2, NUM_PLAYERS); i++) {
         struct Controller *controller = &gControllers[i];
 
         // if we're receiving inputs, update the controller struct with the new button info.
@@ -629,13 +630,15 @@ void read_controller_inputs(s32 threadID) {
     // For some reason, player 1's inputs are copied to player 3's port.
     // This potentially may have been a way the developers "recorded"
     // the inputs for demos, despite record_demo existing.
-    gPlayer3Controller->rawStickX = gPlayer1Controller->rawStickX;
-    gPlayer3Controller->rawStickY = gPlayer1Controller->rawStickY;
-    gPlayer3Controller->stickX = gPlayer1Controller->stickX;
-    gPlayer3Controller->stickY = gPlayer1Controller->stickY;
-    gPlayer3Controller->stickMag = gPlayer1Controller->stickMag;
-    gPlayer3Controller->buttonPressed = gPlayer1Controller->buttonPressed;
-    gPlayer3Controller->buttonDown = gPlayer1Controller->buttonDown;
+    if (gMarioStates[2].marioObj == NULL) {
+        gPlayer3Controller->rawStickX = gPlayer1Controller->rawStickX;
+        gPlayer3Controller->rawStickY = gPlayer1Controller->rawStickY;
+        gPlayer3Controller->stickX = gPlayer1Controller->stickX;
+        gPlayer3Controller->stickY = gPlayer1Controller->stickY;
+        gPlayer3Controller->stickMag = gPlayer1Controller->stickMag;
+        gPlayer3Controller->buttonPressed = gPlayer1Controller->buttonPressed;
+        gPlayer3Controller->buttonDown = gPlayer1Controller->buttonDown;
+    }
 }
 
 /**
@@ -664,7 +667,7 @@ void init_controllers(void) {
     // only 2 are connected here. The third seems to have been reserved for debug
     // purposes and was never connected in the retail ROM, thus gPlayer3Controller
     // cannot be used, despite being referenced in various code.
-    for (cont = 0, port = 0; port < 4 && cont < 2; port++) {
+    for (cont = 0, port = 0; port < 4 && cont < MAX(2, NUM_PLAYERS); port++) {
         // Is controller plugged in?
         if (gControllerBits & (1 << port)) {
             // The game allows you to have just 1 controller plugged
@@ -698,9 +701,16 @@ void setup_game_memory(void) {
     gPhysicalFramebuffers[1] = VIRTUAL_TO_PHYSICAL(gFramebuffer1);
     gPhysicalFramebuffers[2] = VIRTUAL_TO_PHYSICAL(gFramebuffer2);
     // Setup Mario Animations
-    gMarioAnimsMemAlloc = main_pool_alloc(MARIO_ANIMS_POOL_SIZE, MEMORY_POOL_LEFT);
-    set_segment_base_addr(SEGMENT_MARIO_ANIMS, (void *) gMarioAnimsMemAlloc);
-    setup_dma_table_list(&gMarioAnimsBuf, gMarioAnims, gMarioAnimsMemAlloc);
+    gMarioAnimsMemAlloc[0] = main_pool_alloc(MARIO_ANIMS_POOL_SIZE, MEMORY_POOL_LEFT);
+    set_segment_base_addr(SEGMENT_MARIO_ANIMS, (void *) gMarioAnimsMemAlloc[0]);
+    setup_dma_table_list(&gMarioAnimsBuf[0], gMarioAnims, gMarioAnimsMemAlloc[0]);
+    // Setup Mario Animations for players 2-4 if applicable.
+#if NUM_PLAYERS != 1
+    for (u32 i = 1; i < NUM_PLAYERS; i++) {
+        gMarioAnimsMemAlloc[i] = main_pool_alloc(MARIO_ANIMS_POOL_SIZE, MEMORY_POOL_LEFT);
+        setup_dma_table_list(&gMarioAnimsBuf[i], gMarioAnims, gMarioAnimsMemAlloc[i]);
+    }
+#endif
     // Setup Demo Inputs List
     gDemoInputsMemAlloc = main_pool_alloc(DEMO_INPUTS_POOL_SIZE, MEMORY_POOL_LEFT);
     set_segment_base_addr(SEGMENT_DEMO_INPUTS, (void *) gDemoInputsMemAlloc);

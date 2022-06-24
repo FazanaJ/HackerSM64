@@ -214,38 +214,6 @@ struct ParticleProperties sParticleTypes[] = {
 };
 
 /**
- * Copy position, velocity, and angle variables from MarioState to the Mario
- * object.
- */
-void copy_mario_state_to_object(void) {
-    s32 i = 0;
-    // L is real
-    if (gCurrentObject != gMarioObject) {
-        i++;
-    }
-
-    gCurrentObject->oVelX = gMarioStates[i].vel[0];
-    gCurrentObject->oVelY = gMarioStates[i].vel[1];
-    gCurrentObject->oVelZ = gMarioStates[i].vel[2];
-
-    gCurrentObject->oPosX = gMarioStates[i].pos[0];
-    gCurrentObject->oPosY = gMarioStates[i].pos[1];
-    gCurrentObject->oPosZ = gMarioStates[i].pos[2];
-
-    gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
-    gCurrentObject->oMoveAngleYaw = gCurrentObject->header.gfx.angle[1];
-    gCurrentObject->oMoveAngleRoll = gCurrentObject->header.gfx.angle[2];
-
-    gCurrentObject->oFaceAnglePitch = gCurrentObject->header.gfx.angle[0];
-    gCurrentObject->oFaceAngleYaw = gCurrentObject->header.gfx.angle[1];
-    gCurrentObject->oFaceAngleRoll = gCurrentObject->header.gfx.angle[2];
-
-    gCurrentObject->oAngleVelPitch = gMarioStates[i].angleVel[0];
-    gCurrentObject->oAngleVelYaw = gMarioStates[i].angleVel[1];
-    gCurrentObject->oAngleVelRoll = gMarioStates[i].angleVel[2];
-}
-
-/**
  * Spawn a particle at gCurrentObject's location.
  */
 void spawn_particle(u32 activeParticleFlag, ModelID16 model, const BehaviorScript *behavior) {
@@ -264,12 +232,32 @@ void bhv_mario_update(void) {
     u32 particleFlags = 0;
     s32 i;
 
+    gMarioState = &gMarioStates[gCurrentMario];
+
     particleFlags = execute_mario_action(gCurrentObject);
     gCurrentObject->oMarioParticleFlags = particleFlags;
 
     // Mario code updates MarioState's versions of position etc, so we need
     // to sync it with the Mario object
-    copy_mario_state_to_object();
+    gCurrentObject->oVelX = gMarioState->vel[0];
+    gCurrentObject->oVelY = gMarioState->vel[1];
+    gCurrentObject->oVelZ = gMarioState->vel[2];
+
+    gCurrentObject->oPosX = gMarioState->pos[0];
+    gCurrentObject->oPosY = gMarioState->pos[1];
+    gCurrentObject->oPosZ = gMarioState->pos[2];
+
+    gCurrentObject->oMoveAnglePitch = gCurrentObject->header.gfx.angle[0];
+    gCurrentObject->oMoveAngleYaw = gCurrentObject->header.gfx.angle[1];
+    gCurrentObject->oMoveAngleRoll = gCurrentObject->header.gfx.angle[2];
+
+    gCurrentObject->oFaceAnglePitch = gCurrentObject->header.gfx.angle[0];
+    gCurrentObject->oFaceAngleYaw = gCurrentObject->header.gfx.angle[1];
+    gCurrentObject->oFaceAngleRoll = gCurrentObject->header.gfx.angle[2];
+
+    gCurrentObject->oAngleVelPitch = gMarioState->angleVel[0];
+    gCurrentObject->oAngleVelYaw = gMarioState->angleVel[1];
+    gCurrentObject->oAngleVelRoll = gMarioState->angleVel[2];
 
     i = 0;
     while (sParticleTypes[i].particleFlag != 0) {
@@ -280,6 +268,8 @@ void bhv_mario_update(void) {
 
         i++;
     }
+    gMarioState = &gMarioStates[0];
+    gCurrentMario++;
 }
 
 /**
@@ -615,6 +605,7 @@ void update_objects(UNUSED s32 unused) {
     // cycleCounts[0] = get_current_clock();
 
     gTimeStopState &= ~TIME_STOP_MARIO_OPENED_DOOR;
+    gCurrentMario = 0;
 
     gNumRoomedObjectsInMarioRoom = 0;
     gNumRoomedObjectsNotInMarioRoom = 0;

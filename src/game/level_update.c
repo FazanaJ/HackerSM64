@@ -31,6 +31,7 @@
 #include "puppyprint.h"
 #include "puppylights.h"
 #include "level_commands.h"
+#include "behavior_data.h"
 
 #include "config.h"
 
@@ -951,10 +952,6 @@ void basic_update(void) {
 #ifdef PUPPYLIGHTS
     delete_lights();
 #endif
-
-    if (gCurrentArea != NULL) {
-        update_camera(gCurrentArea->camera);
-    }
 }
 
 s32 play_mode_normal(void) {
@@ -982,10 +979,6 @@ s32 play_mode_normal(void) {
 #ifdef PUPPYLIGHTS
     delete_lights();
 #endif
-
-    if (gCurrentArea != NULL) {
-        update_camera(gCurrentArea->camera);
-    }
 
     initiate_painting_warp();
     initiate_delayed_warp();
@@ -1074,7 +1067,6 @@ s32 play_mode_change_area(void) {
     }
 
     if (--sTransitionTimer == -1) {
-        update_camera(gCurrentArea->camera);
         sTransitionTimer = 0;
         sTransitionUpdate = NULL;
         set_play_mode(PLAY_MODE_NORMAL);
