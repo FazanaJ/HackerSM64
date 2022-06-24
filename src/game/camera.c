@@ -109,7 +109,7 @@ u8 sFramesPaused;
 
 extern struct CameraFOVStatus sFOVState;
 extern struct TransitionInfo sModeTransition;
-extern struct PlayerGeometry sMarioGeometry;
+extern struct PlayerGeometry sMarioGeometry[NUM_PLAYERS];
 extern s16 sAvoidYawVel;
 extern s16 sCameraYawAfterDoorCutscene;
 extern struct HandheldShakePoint sHandheldShakeSpline[4];
@@ -167,7 +167,7 @@ extern struct Camera *gCamera;
 struct LakituState gLakituState[NUM_PLAYERS];
 struct CameraFOVStatus sFOVState;
 struct TransitionInfo sModeTransition;
-struct PlayerGeometry sMarioGeometry;
+struct PlayerGeometry sMarioGeometry[NUM_PLAYERS];
 struct Camera *gCamera;
 s16 sAvoidYawVel;
 s16 sCameraYawAfterDoorCutscene;
@@ -632,18 +632,18 @@ void unused_set_camera_pitch_shake_env(s16 shake) {
  *      posOff and focOff are sometimes the same address, which just ignores the pos calculation
  */
 void calc_y_to_curr_floor(f32 *posOff, f32 posMul, f32 posBound, f32 *focOff, f32 focMul, f32 focBound) {
-    f32 floorHeight = sMarioGeometry.currFloorHeight;
+    f32 floorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
     f32 waterHeight;
 
     if (!(sMarioCamState->action & ACT_FLAG_METAL_WATER)) {
-        //! @bug this should use sMarioGeometry.waterHeight
+        //! @bug this should use sMarioGeometry[gCurrentMario].waterHeight
         if (floorHeight < (waterHeight = find_water_level(sMarioCamState->pos[0], sMarioCamState->pos[2]))) {
             floorHeight = waterHeight;
         }
     }
 
     if (sMarioCamState->action & ACT_FLAG_ON_POLE) {
-        if (sMarioGeometry.currFloorHeight >= gMarioStates[0].usedObj->oPosY && sMarioCamState->pos[1]
+        if (sMarioGeometry[gCurrentMario].currFloorHeight >= gMarioStates[0].usedObj->oPosY && sMarioCamState->pos[1]
                    < 0.7f * gMarioStates[0].usedObj->hitboxHeight + gMarioStates[0].usedObj->oPosY) {
             posBound = 1200;
         }
@@ -697,8 +697,8 @@ void set_camera_height(struct Camera *c, f32 goalHeight) {
 #endif
 
     if (sMarioCamState->action & ACT_FLAG_HANGING) {
-        marioCeilHeight = sMarioGeometry.currCeilHeight;
-        marioFloorHeight = sMarioGeometry.currFloorHeight;
+        marioCeilHeight = sMarioGeometry[gCurrentMario].currCeilHeight;
+        marioFloorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
 
         if (marioFloorHeight < marioCeilHeight - 400.f) {
             marioFloorHeight = marioCeilHeight - 400.f;
@@ -713,7 +713,7 @@ void set_camera_height(struct Camera *c, f32 goalHeight) {
         approach_camera_height(c, goalHeight, 5.f);
     } else {
         camFloorHeight = find_floor(c->pos[0], c->pos[1] + 100.f, c->pos[2], &surface) + baseOff;
-        marioFloorHeight = baseOff + sMarioGeometry.currFloorHeight;
+        marioFloorHeight = baseOff + sMarioGeometry[gCurrentMario].currFloorHeight;
 
         if (camFloorHeight < marioFloorHeight) {
             camFloorHeight = marioFloorHeight;
@@ -740,9 +740,9 @@ void set_camera_height(struct Camera *c, f32 goalHeight) {
 
         if (camCeilHeight != CELL_HEIGHT_LIMIT) {
             camCeilHeight -= baseOff;
-            if ((c->pos[1] > camCeilHeight && sMarioGeometry.currFloorHeight + baseOff < camCeilHeight)
-                || (sMarioGeometry.currCeilHeight != CELL_HEIGHT_LIMIT
-                    && sMarioGeometry.currCeilHeight > camCeilHeight && c->pos[1] > camCeilHeight)) {
+            if ((c->pos[1] > camCeilHeight && sMarioGeometry[gCurrentMario].currFloorHeight + baseOff < camCeilHeight)
+                || (sMarioGeometry[gCurrentMario].currCeilHeight != CELL_HEIGHT_LIMIT
+                    && sMarioGeometry[gCurrentMario].currCeilHeight > camCeilHeight && c->pos[1] > camCeilHeight)) {
                 c->pos[1] = camCeilHeight;
             }
         }
@@ -914,16 +914,16 @@ void radial_camera_move(struct Camera *c) {
     // Check if Mario stepped on a surface that rotates the camera. For example, when Mario enters the
     // gate in BoB, the camera turns right to face up the hill path
     if (!(gCameraMovementFlags & CAM_MOVE_ROTATE)) {
-        if (sMarioGeometry.currFloorType == SURFACE_CAMERA_MIDDLE
-            && sMarioGeometry.prevFloorType != SURFACE_CAMERA_MIDDLE) {
+        if (sMarioGeometry[gCurrentMario].currFloorType == SURFACE_CAMERA_MIDDLE
+            && sMarioGeometry[gCurrentMario].prevFloorType != SURFACE_CAMERA_MIDDLE) {
             gCameraMovementFlags |= (CAM_MOVE_RETURN_TO_MIDDLE | CAM_MOVE_ENTERED_ROTATE_SURFACE);
         }
-        if (sMarioGeometry.currFloorType == SURFACE_CAMERA_ROTATE_RIGHT
-            && sMarioGeometry.prevFloorType != SURFACE_CAMERA_ROTATE_RIGHT) {
+        if (sMarioGeometry[gCurrentMario].currFloorType == SURFACE_CAMERA_ROTATE_RIGHT
+            && sMarioGeometry[gCurrentMario].prevFloorType != SURFACE_CAMERA_ROTATE_RIGHT) {
             gCameraMovementFlags |= (CAM_MOVE_ROTATE_RIGHT | CAM_MOVE_ENTERED_ROTATE_SURFACE);
         }
-        if (sMarioGeometry.currFloorType == SURFACE_CAMERA_ROTATE_LEFT
-            && sMarioGeometry.prevFloorType != SURFACE_CAMERA_ROTATE_LEFT) {
+        if (sMarioGeometry[gCurrentMario].currFloorType == SURFACE_CAMERA_ROTATE_LEFT
+            && sMarioGeometry[gCurrentMario].prevFloorType != SURFACE_CAMERA_ROTATE_LEFT) {
             gCameraMovementFlags |= (CAM_MOVE_ROTATE_LEFT | CAM_MOVE_ENTERED_ROTATE_SURFACE);
         }
     }
@@ -1422,9 +1422,9 @@ s32 update_fixed_camera(struct Camera *c, Vec3f focus, UNUSED Vec3f pos) {
     vec3f_copy(basePos, sFixedModeBasePosition);
     vec3f_add(basePos, sCastleEntranceOffset);
 
-    if (sMarioGeometry.currFloorType != SURFACE_DEATH_PLANE
-        && sMarioGeometry.currFloorHeight != FLOOR_LOWER_LIMIT) {
-        goalHeight = sMarioGeometry.currFloorHeight + basePos[1] + heightOffset;
+    if (sMarioGeometry[gCurrentMario].currFloorType != SURFACE_DEATH_PLANE
+        && sMarioGeometry[gCurrentMario].currFloorHeight != FLOOR_LOWER_LIMIT) {
+        goalHeight = sMarioGeometry[gCurrentMario].currFloorHeight + basePos[1] + heightOffset;
     } else {
         goalHeight = gLakituState[gCurrentMario].goalPos[1];
     }
@@ -1887,7 +1887,7 @@ s16 update_slide_camera(struct Camera *c) {
     camera_approach_s16_symmetric_bool(&camPitch, goalPitch, 0x100);
 
     // Hoot mode
-    if (sMarioCamState->action != ACT_RIDING_HOOT && sMarioGeometry.currFloorType == SURFACE_DEATH_PLANE) {
+    if (sMarioCamState->action != ACT_RIDING_HOOT && sMarioGeometry[gCurrentMario].currFloorType == SURFACE_DEATH_PLANE) {
         vec3f_set_dist_and_angle(c->focus, pos, maxCamDist + sLakituDist, camPitch, camYaw);
         c->pos[0] = pos[0];
         c->pos[2] = pos[2];
@@ -2139,8 +2139,8 @@ s16 update_default_camera(struct Camera *c) {
     c->focus[1] = sMarioCamState->pos[1] + 125.f + focHeight;
     c->focus[2] = sMarioCamState->pos[2];
 
-    marioFloorHeight = 125.f + sMarioGeometry.currFloorHeight;
-    marioFloor = sMarioGeometry.currFloor;
+    marioFloorHeight = 125.f + sMarioGeometry[gCurrentMario].currFloorHeight;
+    marioFloor = sMarioGeometry[gCurrentMario].currFloor;
     camFloorHeight = find_floor(cPos[0], cPos[1] + 50.f, cPos[2], &cFloor) + 125.f;
     for (scale = 0.1f; scale < 1.f; scale += 0.2f) {
         scale_along_line(tempPos, cPos, sMarioCamState->pos, scale);
@@ -2250,7 +2250,7 @@ s16 update_default_camera(struct Camera *c) {
         dist = 50.f;
         vec3f_set_dist_and_angle(cPos, c->pos, dist, tempPitch, tempYaw);
     }
-    if (sMarioGeometry.currFloorType != SURFACE_DEATH_PLANE) {
+    if (sMarioGeometry[gCurrentMario].currFloorType != SURFACE_DEATH_PLANE) {
         vec3f_get_dist_and_angle(c->focus, c->pos, &dist, &tempPitch, &tempYaw);
         if (dist > zoomDist) {
             dist = zoomDist;
@@ -2348,8 +2348,8 @@ s32 update_spiral_stairs_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
     floorHeight = find_floor(checkPos[0], checkPos[1] + 50.f, checkPos[2], &floor);
 
     if (floorHeight != FLOOR_LOWER_LIMIT) {
-        if (floorHeight < sMarioGeometry.currFloorHeight) {
-            floorHeight = sMarioGeometry.currFloorHeight;
+        if (floorHeight < sMarioGeometry[gCurrentMario].currFloorHeight) {
+            floorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
         }
         pos[1] = approach_f32(pos[1], (floorHeight += 125.f), 30.f, 30.f);
     }
@@ -2388,8 +2388,8 @@ static UNUSED void unused_mode_0f_camera(struct Camera *c) {
  * In this mode, the camera is always at the back of Mario, because Mario generally only moves forward.
  */
 void mode_slide_camera(struct Camera *c) {
-    if (sMarioGeometry.currFloorType == SURFACE_CLOSE_CAMERA ||
-        sMarioGeometry.currFloorType == SURFACE_NO_CAM_COL_SLIPPERY) {
+    if (sMarioGeometry[gCurrentMario].currFloorType == SURFACE_CLOSE_CAMERA ||
+        sMarioGeometry[gCurrentMario].currFloorType == SURFACE_NO_CAM_COL_SLIPPERY) {
         mode_lakitu_camera(c);
     } else {
         if (gMarioState->controller->buttonPressed & U_CBUTTONS) {
@@ -2909,12 +2909,12 @@ void update_camera(struct Camera *c) {
     if (!gPuppyCam.enabled || c->cutscene != CUTSCENE_NONE || gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
 #endif
     // Store previous geometry information
-    sMarioGeometry.prevFloorHeight = sMarioGeometry.currFloorHeight;
-    sMarioGeometry.prevCeilHeight = sMarioGeometry.currCeilHeight;
-    sMarioGeometry.prevFloor = sMarioGeometry.currFloor;
-    sMarioGeometry.prevCeil = sMarioGeometry.currCeil;
-    sMarioGeometry.prevFloorType = sMarioGeometry.currFloorType;
-    sMarioGeometry.prevCeilType = sMarioGeometry.currCeilType;
+    sMarioGeometry[gCurrentMario].prevFloorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
+    sMarioGeometry[gCurrentMario].prevCeilHeight = sMarioGeometry[gCurrentMario].currCeilHeight;
+    sMarioGeometry[gCurrentMario].prevFloor = sMarioGeometry[gCurrentMario].currFloor;
+    sMarioGeometry[gCurrentMario].prevCeil = sMarioGeometry[gCurrentMario].currCeil;
+    sMarioGeometry[gCurrentMario].prevFloorType = sMarioGeometry[gCurrentMario].currFloorType;
+    sMarioGeometry[gCurrentMario].prevCeilType = sMarioGeometry[gCurrentMario].currCeilType;
 
     find_mario_floor_and_ceil(&sMarioGeometry);
     gCollisionFlags |= COLLISION_FLAG_CAMERA;
@@ -3210,12 +3210,12 @@ void init_camera(struct Camera *c) {
     vec3_zero(sCastleEntranceOffset);
     vec3_zero(sPlayer2FocusOffset);
     find_mario_floor_and_ceil(&sMarioGeometry);
-    sMarioGeometry.prevFloorHeight = sMarioGeometry.currFloorHeight;
-    sMarioGeometry.prevCeilHeight = sMarioGeometry.currCeilHeight;
-    sMarioGeometry.prevFloor = sMarioGeometry.currFloor;
-    sMarioGeometry.prevCeil = sMarioGeometry.currCeil;
-    sMarioGeometry.prevFloorType = sMarioGeometry.currFloorType;
-    sMarioGeometry.prevCeilType = sMarioGeometry.currCeilType;
+    sMarioGeometry[gCurrentMario].prevFloorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
+    sMarioGeometry[gCurrentMario].prevCeilHeight = sMarioGeometry[gCurrentMario].currCeilHeight;
+    sMarioGeometry[gCurrentMario].prevFloor = sMarioGeometry[gCurrentMario].currFloor;
+    sMarioGeometry[gCurrentMario].prevCeil = sMarioGeometry[gCurrentMario].currCeil;
+    sMarioGeometry[gCurrentMario].prevFloorType = sMarioGeometry[gCurrentMario].currFloorType;
+    sMarioGeometry[gCurrentMario].prevCeilType = sMarioGeometry[gCurrentMario].currCeilType;
     for (i = 0; i < 32; i++) {
         sCurCreditsSplinePos[i].index = -1;
         sCurCreditsSplineFocus[i].index = -1;
@@ -4865,7 +4865,7 @@ u8 get_cutscene_from_mario_status(struct Camera *c) {
         if (sMarioCamState->cameraEvent == CAM_EVENT_CANNON) {
             cutscene = CUTSCENE_ENTER_CANNON;
         }
-        if (SURFACE_IS_PAINTING_WARP(sMarioGeometry.currFloorType)) {
+        if (SURFACE_IS_PAINTING_WARP(sMarioGeometry[gCurrentMario].currFloorType)) {
             cutscene = CUTSCENE_ENTER_PAINTING;
         }
         switch (sMarioCamState->action) {
@@ -5393,8 +5393,8 @@ void cam_sl_free_roam(struct Camera *c) {
  * Warps the camera underneath the floor, used in HMC to move under the elevator platforms
  */
 void move_camera_through_floor_while_descending(struct Camera *c, f32 height) {
-    if ((sMarioGeometry.currFloorHeight < height - 100.f)
-        && (sMarioGeometry.prevFloorHeight > sMarioGeometry.currFloorHeight)) {
+    if ((sMarioGeometry[gCurrentMario].currFloorHeight < height - 100.f)
+        && (sMarioGeometry[gCurrentMario].prevFloorHeight > sMarioGeometry[gCurrentMario].currFloorHeight)) {
         c->pos[1] = height - 400.f;
         gLakituState[gCurrentMario].curPos[1] = height - 400.f;
         gLakituState[gCurrentMario].goalPos[1] = height - 400.f;
@@ -5524,7 +5524,7 @@ void cam_castle_look_upstairs(struct Camera *c) {
     f32 floorHeight = find_floor(c->pos[0], c->pos[1], c->pos[2], &floor);
 
     // If Mario is on the first few steps, fix the camera pos, making it look up
-    if ((sMarioGeometry.currFloorHeight > 1229.f) && (floorHeight < 1229.f)
+    if ((sMarioGeometry[gCurrentMario].currFloorHeight > 1229.f) && (floorHeight < 1229.f)
         && (sCSideButtonYaw == 0)) {
         vec3f_set(c->pos, -227.f, 1425.f, 1533.f);
     }
@@ -5772,7 +5772,7 @@ void cam_ccm_leave_slide_shortcut(UNUSED struct Camera *c) {
 u32 surface_type_modes(struct Camera *c) {
     u32 modeChanged = 0;
 
-    switch (sMarioGeometry.currFloorType) {
+    switch (sMarioGeometry[gCurrentMario].currFloorType) {
         case SURFACE_CLOSE_CAMERA:
             transition_to_camera_mode(c, CAMERA_MODE_CLOSE, 90);
             modeChanged++;
@@ -5808,7 +5808,7 @@ u32 set_mode_if_not_set_by_surface(struct Camera *c, u8 mode) {
  * Used in THI, check if Mario is standing on any of the special surfaces in that area
  */
 void surface_type_modes_thi(struct Camera *c) {
-    switch (sMarioGeometry.currFloorType) {
+    switch (sMarioGeometry[gCurrentMario].currFloorType) {
         case SURFACE_CLOSE_CAMERA:
             if (c->mode != CAMERA_MODE_CLOSE) {
                 transition_to_camera_mode(c, CAMERA_MODE_FREE_ROAM, 90);
@@ -6262,7 +6262,7 @@ s16 camera_course_processing(struct Camera *c) {
                 if (sMarioCamState->action == ACT_RIDING_HOOT) {
                     transition_to_camera_mode(c, CAMERA_MODE_SLIDE_HOOT, 60);
                 } else {
-                    switch (sMarioGeometry.currFloorType) {
+                    switch (sMarioGeometry[gCurrentMario].currFloorType) {
                         case SURFACE_CAMERA_8_DIR:
                             transition_to_camera_mode(c, CAMERA_MODE_8_DIRECTIONS, 90);
                             s8DirModeBaseYaw = DEGREES(90);
@@ -6311,7 +6311,7 @@ s16 camera_course_processing(struct Camera *c) {
 
             case AREA_BOB:
                 if (set_mode_if_not_set_by_surface(c, CAMERA_MODE_NONE) == 0) {
-                    if (sMarioGeometry.currFloorType == SURFACE_BOSS_FIGHT_CAMERA) {
+                    if (sMarioGeometry[gCurrentMario].currFloorType == SURFACE_BOSS_FIGHT_CAMERA) {
                         set_camera_mode_boss_fight(c);
                     } else {
                         if (c->mode == CAMERA_MODE_CLOSE) {
@@ -6324,7 +6324,7 @@ s16 camera_course_processing(struct Camera *c) {
                 break;
 
             case AREA_WDW_MAIN:
-                switch (sMarioGeometry.currFloorType) {
+                switch (sMarioGeometry[gCurrentMario].currFloorType) {
                     case SURFACE_INSTANT_WARP_1B:
                         c->defMode = CAMERA_MODE_RADIAL;
                         break;
@@ -6332,7 +6332,7 @@ s16 camera_course_processing(struct Camera *c) {
                 break;
 
             case AREA_WDW_TOWN:
-                switch (sMarioGeometry.currFloorType) {
+                switch (sMarioGeometry[gCurrentMario].currFloorType) {
                     case SURFACE_INSTANT_WARP_1C:
                         c->defMode = CAMERA_MODE_CLOSE;
                         break;
@@ -6348,7 +6348,7 @@ s16 camera_course_processing(struct Camera *c) {
                 if ((c->mode != CAMERA_MODE_BEHIND_MARIO)
                     && (c->mode != CAMERA_MODE_WATER_SURFACE)) {
                     if (((sMarioCamState->action & ACT_FLAG_ON_POLE) != 0)
-                        || (sMarioGeometry.currFloorHeight > 800.f)) {
+                        || (sMarioGeometry[gCurrentMario].currFloorHeight > 800.f)) {
                         transition_to_camera_mode(c, CAMERA_MODE_8_DIRECTIONS, 60);
 
                     } else {
@@ -9235,8 +9235,8 @@ void cutscene_intro_peach_mario_appears(struct Camera *c) {
     cutscene_event(cutscene_intro_peach_handheld_shake_off, c, 70, 70);
     cutscene_event(intro_pipe_exit_text, c, 250, 250);
 
-    approach_f32_asymptotic_bool(&sCutsceneVars[1].point[1], 80.f + sMarioGeometry.currFloorHeight +
-                                 (sMarioCamState->pos[1] - sMarioGeometry.currFloorHeight) * 1.1f, 0.4f);
+    approach_f32_asymptotic_bool(&sCutsceneVars[1].point[1], 80.f + sMarioGeometry[gCurrentMario].currFloorHeight +
+                                 (sMarioCamState->pos[1] - sMarioGeometry[gCurrentMario].currFloorHeight) * 1.1f, 0.4f);
 
     // Make the camera look up as Mario jumps out of the pipe
     if (c->focus[1] < sCutsceneVars[1].point[1]) {

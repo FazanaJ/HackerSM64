@@ -1327,15 +1327,15 @@ static void puppycam_apply(void) {
     }*/
 
     if (gMarioState->floor != NULL) {
-        sMarioGeometry.currFloor       = gMarioState->floor;
-        sMarioGeometry.currFloorHeight = gMarioState->floorHeight;
-        sMarioGeometry.currFloorType   = gMarioState->floor->type;
+        sMarioGeometry[gCurrentMario].currFloor       = gMarioState->floor;
+        sMarioGeometry[gCurrentMario].currFloorHeight = gMarioState->floorHeight;
+        sMarioGeometry[gCurrentMario].currFloorType   = gMarioState->floor->type;
     }
 
     if (gMarioState->ceil != NULL) {
-        sMarioGeometry.currCeil        = gMarioState->ceil;
-        sMarioGeometry.currCeilHeight  = gMarioState->ceilHeight;
-        sMarioGeometry.currCeilType    = gMarioState->ceil->type;
+        sMarioGeometry[gCurrentMario].currCeil        = gMarioState->ceil;
+        sMarioGeometry[gCurrentMario].currCeilHeight  = gMarioState->ceilHeight;
+        sMarioGeometry[gCurrentMario].currCeilType    = gMarioState->ceil->type;
     }
 }
 
