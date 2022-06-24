@@ -631,13 +631,13 @@ void read_controller_inputs(s32 threadID) {
     // This potentially may have been a way the developers "recorded"
     // the inputs for demos, despite record_demo existing.
     if (gMarioStates[2].marioObj == NULL) {
-        gPlayer3Controller->rawStickX = gPlayer1Controller->rawStickX;
-        gPlayer3Controller->rawStickY = gPlayer1Controller->rawStickY;
-        gPlayer3Controller->stickX = gPlayer1Controller->stickX;
-        gPlayer3Controller->stickY = gPlayer1Controller->stickY;
-        gPlayer3Controller->stickMag = gPlayer1Controller->stickMag;
-        gPlayer3Controller->buttonPressed = gPlayer1Controller->buttonPressed;
-        gPlayer3Controller->buttonDown = gPlayer1Controller->buttonDown;
+        gPlayer1Controller->rawStickX = gPlayer1Controller->rawStickX;
+        gPlayer1Controller->rawStickY = gPlayer1Controller->rawStickY;
+        gPlayer1Controller->stickX = gPlayer1Controller->stickX;
+        gPlayer1Controller->stickY = gPlayer1Controller->stickY;
+        gPlayer1Controller->stickMag = gPlayer1Controller->stickMag;
+        gPlayer1Controller->buttonPressed = gPlayer1Controller->buttonPressed;
+        gPlayer1Controller->buttonDown = gPlayer1Controller->buttonDown;
     }
 }
 

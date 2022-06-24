@@ -1803,6 +1803,7 @@ void init_mario(void) {
             struct Object *mario = spawn_object(gCurrentObject, MODEL_MARIO, bhvMario);
             gMarioStates[i].marioObj = mario;
             gMarioStates[i].controller = &gControllers[i];
+            mario->oBehParams = i+1;
         }
         gMarioStates[i].actionTimer = 0;
         gMarioStates[i].framesSinceA = 0xFF;
@@ -1873,15 +1874,15 @@ void init_mario(void) {
         switch (i) {
             case 1:
                 gMarioStates[i].pos[0] +=0;
-                gMarioStates[i].pos[2] +=250;
+                gMarioStates[i].pos[2] +=200;
             break;
             case 2:
-                gMarioStates[i].pos[0] -=125;
-                gMarioStates[i].pos[2] +=125;
+                gMarioStates[i].pos[0] -=100;
+                gMarioStates[i].pos[2] +=100;
             break;
             case 3:
-                gMarioStates[i].pos[0] +=125;
-                gMarioStates[i].pos[2] +=125;
+                gMarioStates[i].pos[0] +=100;
+                gMarioStates[i].pos[2] +=100;
             break;
         }
     }
