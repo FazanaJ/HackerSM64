@@ -21,7 +21,7 @@ void whomp_init(void) {
     cur_obj_set_pos_to_home();
 
     if (o->oBehParams2ndByte != 0) {
-        gSecondCameraFocus = o;
+        gSecondCameraFocus[gCurrentMario] = o;
         cur_obj_scale(2.0f);
         if (o->oSubAction == 0) {
             if (o->oDistanceToMario < 600.0f) {

@@ -776,7 +776,7 @@ void bhv_merry_go_round_boo_manager_loop(void) {
 }
 
 void obj_set_secondary_camera_focus(void) {
-    gSecondCameraFocus = o;
+    gSecondCameraFocus[gCurrentMario] = o;
 }
 
 void bhv_animated_texture_loop(void) {

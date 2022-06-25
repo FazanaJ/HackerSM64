@@ -702,17 +702,17 @@ struct LakituState {
 };
 
 // BSS
-extern s16 sSelectionFlags;
-extern s16 sCameraSoundFlags;
-extern u16 sCButtonsPressed;
+extern s16 sSelectionFlags[NUM_PLAYERS];
+extern s16 sCameraSoundFlags[NUM_PLAYERS];
+extern u16 sCButtonsPressed[NUM_PLAYERS];
 extern struct PlayerCameraState gPlayerCameraState[NUM_PLAYERS];
 extern struct LakituState gLakituState[NUM_PLAYERS];
-extern s16 gCameraMovementFlags;
-extern s32 gObjCutsceneDone;
+extern s16 gCameraMovementFlags[NUM_PLAYERS];
+extern s32 gObjCutsceneDone[NUM_PLAYERS];
 extern struct Camera *gCamera;
-extern struct Object *gCutsceneFocus;
-extern struct Object *gSecondCameraFocus;
-extern u8 gRecentCutscene;
+extern struct Object *gCutsceneFocus[NUM_PLAYERS];
+extern struct Object *gSecondCameraFocus[NUM_PLAYERS];
+extern u8 gRecentCutscene[NUM_PLAYERS];
 
 // TODO: sort all of this extremely messy shit out after the split
 

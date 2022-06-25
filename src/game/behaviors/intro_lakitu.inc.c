@@ -90,11 +90,11 @@ void bhv_intro_lakitu_loop(void) {
         case INTRO_LAKITU_ACT_CUTSCENE_INTRO_1:
             cur_obj_enable_rendering();
 
-            if ((gCutsceneTimer > 350) && (gCutsceneTimer < 458)) {
+            if ((gCutsceneTimer[gCurrentMario] > 350) && (gCutsceneTimer[gCurrentMario] < 458)) {
                 vec3f_copy_y_off(&o->oPosVec, gCamera->pos, 500.0f);
             }
 
-            if (gCutsceneTimer > 52) {
+            if (gCutsceneTimer[gCurrentMario] > 52) {
                 cur_obj_play_sound_1(SOUND_AIR_LAKITU_FLY_HIGHPRIO);
             }
 
@@ -135,7 +135,7 @@ void bhv_intro_lakitu_loop(void) {
             break;
 
         case INTRO_LAKITU_ACT_CUTSCENE_INTRO_2:
-            if (gCutsceneTimer > TIMER1) {
+            if (gCutsceneTimer[gCurrentMario] > TIMER1) {
                 o->oAction++;
 
                 o->oIntroLakituDistToBirdsX   = 1400.0f;
@@ -185,7 +185,7 @@ void bhv_intro_lakitu_loop(void) {
         case INTRO_LAKITU_ACT_CUTSCENE_END_WAVING_1:
             cur_obj_enable_rendering();
             vec3f_set(offset, -100.0f, 100.0f, 300.0f);
-            offset_rotated(toPoint, gCamera->pos, offset, sMarioCamState->faceAngle);
+            offset_rotated(toPoint, gCamera->pos, offset, sMarioCamState[gCurrentMario]->faceAngle);
             vec3f_copy(&o->oPosVec, toPoint);
 
             o->oMoveAnglePitch = 0x1000;

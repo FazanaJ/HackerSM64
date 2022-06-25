@@ -1756,7 +1756,7 @@ static void intro_cutscene_lower_pipe(struct MarioState *m) {
 
 static void intro_cutscene_set_mario_to_idle(struct MarioState *m) {
     if (gCamera->cutscene == CUTSCENE_NONE) {
-        gCameraMovementFlags &= ~CAM_MOVE_C_UP_MODE;
+        gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_C_UP_MODE;
         set_mario_action(m, ACT_IDLE, 0);
     }
 
@@ -2059,7 +2059,7 @@ static void end_peach_cutscene_spawn_peach(struct MarioState *m) {
 
         sEndPeachObj = spawn_object_abs_with_rot(gCurrentObject, 0, MODEL_PEACH, bhvEndPeach, 0, 2428,
                                                  -1300, 0, 0, 0);
-        gCutsceneFocus = sEndPeachObj;
+        gCutsceneFocus[gCurrentMario] = sEndPeachObj;
 
         sEndRightToadObj = spawn_object_abs_with_rot(gCurrentObject, 0, MODEL_TOAD, bhvEndToad, 200,
                                                      906, -1290, 0, 0, 0);

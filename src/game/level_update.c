@@ -995,7 +995,7 @@ s32 play_mode_normal(void) {
 #if ENABLE_RUMBLE
             cancel_rumble();
 #endif
-            gCameraMovementFlags |= CAM_MOVE_PAUSE_SCREEN;
+            gCameraMovementFlags[gCurrentMario] |= CAM_MOVE_PAUSE_SCREEN;
             set_play_mode(PLAY_MODE_PAUSED);
         }
     }
@@ -1008,7 +1008,7 @@ s32 play_mode_paused(void) {
         set_menu_mode(MENU_MODE_RENDER_PAUSE_SCREEN);
     } else if (gMenuOptSelectIndex == MENU_OPT_DEFAULT) {
         raise_background_noise(1);
-        gCameraMovementFlags &= ~CAM_MOVE_PAUSE_SCREEN;
+        gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_PAUSE_SCREEN;
         set_play_mode(PLAY_MODE_NORMAL);
 #ifndef DISABLE_EXIT_COURSE
     } else { // MENU_OPT_EXIT_COURSE
@@ -1020,7 +1020,7 @@ s32 play_mode_paused(void) {
             gSavedCourseNum = COURSE_NONE;
         }
 
-        gCameraMovementFlags &= ~CAM_MOVE_PAUSE_SCREEN;
+        gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_PAUSE_SCREEN;
 #endif
     }
 
@@ -1033,14 +1033,14 @@ s32 play_mode_paused(void) {
  */
 s32 play_mode_frame_advance(void) {
     if (gPlayer1Controller->buttonPressed & D_JPAD) {
-        gCameraMovementFlags &= ~CAM_MOVE_PAUSE_SCREEN;
+        gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_PAUSE_SCREEN;
         play_mode_normal();
     } else if (gPlayer1Controller->buttonPressed & START_BUTTON) {
-        gCameraMovementFlags &= ~CAM_MOVE_PAUSE_SCREEN;
+        gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_PAUSE_SCREEN;
         raise_background_noise(1);
         set_play_mode(PLAY_MODE_NORMAL);
     } else {
-        gCameraMovementFlags |= CAM_MOVE_PAUSE_SCREEN;
+        gCameraMovementFlags[gCurrentMario] |= CAM_MOVE_PAUSE_SCREEN;
     }
 
     return FALSE;

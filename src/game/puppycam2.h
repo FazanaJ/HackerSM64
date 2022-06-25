@@ -176,7 +176,7 @@ enum gPuppyCamBeh
 extern const struct sPuppyAngles puppyAnglesNull;
 extern u8 gPCOptionOpen;
 extern s32 gPuppyError;
-extern struct gPuppyStruct gPuppyCam;
+extern struct gPuppyStruct gPuppyCam[NUM_PLAYERS];
 extern struct sPuppyVolume *sPuppyVolumeStack[MAX_PUPPYCAM_VOLUMES];
 extern u16 gPuppyVolumeCount;
 extern struct MemoryPool *gPuppyMemoryPool;

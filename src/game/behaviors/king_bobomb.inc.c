@@ -25,7 +25,7 @@ void king_bobomb_act_inactive(void) { // act 0
 
     if (o->oSubAction == KING_BOBOMB_SUB_ACT_INACTIVE_INIT) {
         cur_obj_become_intangible();
-        gSecondCameraFocus = o;
+        gSecondCameraFocus[gCurrentMario] = o;
         cur_obj_init_animation_with_sound(KING_BOBOMB_ANIM_IDLE);
         cur_obj_set_pos_to_home();
         o->oHealth = 3;

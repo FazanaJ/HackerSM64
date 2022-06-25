@@ -6,14 +6,14 @@ void spawn_child_obj_relative(struct Object *parent, s16 xOffset, s16 yOffset, s
     struct Object *obj = spawn_object(parent, model, behavior);
 
     obj->header.gfx.animInfo.animFrame = random_float() * 6.0f;
-    obj->oEndBirdCutsceneVars9PointX = sCutsceneVars[9].point[0];
+    obj->oEndBirdCutsceneVars9PointX = sCutsceneVars[gCurrentMario][9].point[0];
 
-    sCutsceneVars[9].point[0] += 1.0f;
+    sCutsceneVars[gCurrentMario][9].point[0] += 1.0f;
 
     obj->oPosX += xOffset;
     obj->oPosY += yOffset;
 
-    if (gCutsceneTimer > 700) {
+    if (gCutsceneTimer[gCurrentMario] > 700) {
         obj->oPosY += -150.0f;
     }
 
@@ -25,7 +25,7 @@ void spawn_child_obj_relative(struct Object *parent, s16 xOffset, s16 yOffset, s
 }
 
 void bhv_intro_scene_loop(void) {
-    if (gCutsceneObjSpawn != CUTSCENE_OBJ_NONE) {
+    if (gCutsceneObjSpawn[gCurrentMario] != CUTSCENE_OBJ_NONE) {
         o->oPosX = gCamera->pos[0];
         o->oPosY = gCamera->pos[1];
         o->oPosZ = gCamera->pos[2];
@@ -33,7 +33,7 @@ void bhv_intro_scene_loop(void) {
         o->oMoveAnglePitch = 0;
         o->oMoveAngleYaw = 0;
 
-        switch (gCutsceneObjSpawn) {
+        switch (gCutsceneObjSpawn[gCurrentMario]) {
             case CUTSCENE_OBJ_BEGINNING_LAKITU:
                 spawn_object(o, MODEL_LAKITU, bhvBeginningLakitu);
                 break;
@@ -79,6 +79,6 @@ void bhv_intro_scene_loop(void) {
                 break;
         }
 
-        gCutsceneObjSpawn = CUTSCENE_OBJ_NONE;
+        gCutsceneObjSpawn[gCurrentMario] = CUTSCENE_OBJ_NONE;
     }
 }

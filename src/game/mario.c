@@ -685,7 +685,7 @@ void update_mario_sound_and_camera(struct MarioState *m) {
 
     if (action == ACT_FIRST_PERSON) {
         raise_background_noise(2);
-        gCameraMovementFlags &= ~CAM_MOVE_C_UP_MODE;
+        gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_C_UP_MODE;
         // Go back to the last camera mode
         set_camera_mode(m->area->camera, -1, 1);
     } else if (action == ACT_SLEEPING) {
@@ -1326,7 +1326,7 @@ void update_mario_inputs(struct MarioState *m) {
     m->flags &= 0xFFFFFF;
 
 #ifdef PUPPYCAM
-    if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ENTER_FIRST_PERSON || (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_FREE && gPuppyCam.debugFlags & PUPPYDEBUG_LOCK_CONTROLS)) {
+    if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ENTER_FIRST_PERSON || (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_FREE && gPuppyCam[gCurrentMario].debugFlags & PUPPYDEBUG_LOCK_CONTROLS)) {
         m->input = INPUT_FIRST_PERSON;
         return;
     }
@@ -1338,11 +1338,11 @@ void update_mario_inputs(struct MarioState *m) {
 #ifdef VANILLA_DEBUG
     debug_print_speed_action_normal(m);
 #endif
-    if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
+    if (gCameraMovementFlags[gCurrentMario] & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {
             m->input |= INPUT_FIRST_PERSON;
         } else {
-            gCameraMovementFlags &= ~CAM_MOVE_C_UP_MODE;
+            gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_C_UP_MODE;
         }
     }
 
@@ -1725,7 +1725,7 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
         update_mario_inputs(gMarioState);
 
 #ifdef PUPPYCAM
-        if (!(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_FREE)) {
+        if (!(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_FREE)) {
 #endif
         mario_handle_special_floors(gMarioState);
 #ifdef PUPPYCAM

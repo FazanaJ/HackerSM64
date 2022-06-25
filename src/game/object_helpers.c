@@ -1251,7 +1251,7 @@ void cur_obj_shake_y(f32 amount) {
 
 void cur_obj_start_cam_event(UNUSED struct Object *obj, s32 cameraEvent) {
     gPlayerCameraState->cameraEvent = (s16) cameraEvent;
-    gSecondCameraFocus = o;
+    gSecondCameraFocus[gCurrentMario] = o;
 }
 
 void obj_set_billboard(struct Object *obj) {

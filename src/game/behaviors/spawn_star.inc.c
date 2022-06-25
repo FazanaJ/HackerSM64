@@ -109,7 +109,7 @@ void bhv_star_spawn_loop(void) {
         case SPAWN_STAR_ARC_CUTSCENE_ACT_END:
             o->oFaceAngleYaw += 0x800;
             if (o->oTimer == 20) {
-                gObjCutsceneDone = TRUE;
+                gObjCutsceneDone[gCurrentMario] = TRUE;
                 clear_time_stop_flags(TIME_STOP_ENABLED | TIME_STOP_MARIO_AND_DOORS);
                 o->activeFlags &= ~ACTIVE_FLAG_INITIATED_TIME_STOP;
             }

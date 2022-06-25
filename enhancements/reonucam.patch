@@ -125,9 +125,9 @@ index 819f235c..bdc07159 100644
 +    }
 +#endif
 +
-     sAreaYaw = camYaw;
+     sAreaYaw[gCurrentMario] = camYaw;
      calc_y_to_curr_floor(&posY, 1.f, 200.f, &focusY, 0.9f, 200.f);
-     focus_on_mario(focus, pos, posY + yOff, focusY + yOff, sLakituDist + baseDist, pitch, camYaw);
+     focus_on_mario(focus, pos, posY + yOff, focusY + yOff, sLakituDist[gCurrentMario] + baseDist, pitch, camYaw);
 @@ -1115,13 +1159,60 @@ s32 snap_to_45_degrees(s16 angle) {
      return angle;
  }
@@ -138,24 +138,24 @@ index 819f235c..bdc07159 100644
 +    f32 cameraSpeed = set_camera_speed();
 +    //45º rotations
 +    if ((gPlayer1Controller->buttonPressed & L_CBUTTONS) && !(gPlayer1Controller->buttonDown & R_TRIG)) {
-+        s8DirModeBaseYaw -= DEGREES(45);
++        s8DirModeBaseYaw[gCurrentMario] -= DEGREES(45);
 +    } else if ((gPlayer1Controller->buttonPressed & R_CBUTTONS) && !(gPlayer1Controller->buttonDown & R_TRIG)) {
-+        s8DirModeBaseYaw += DEGREES(45);
++        s8DirModeBaseYaw[gCurrentMario] += DEGREES(45);
 +    }
 +    //Smooth rotation
 +    if (gPlayer1Controller->buttonDown & R_TRIG) {
 +        if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-+            s8DirModeBaseYaw -= DEGREES(cameraSpeed);
++            s8DirModeBaseYaw[gCurrentMario] -= DEGREES(cameraSpeed);
 +        } else if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-+            s8DirModeBaseYaw += DEGREES(cameraSpeed);
++            s8DirModeBaseYaw[gCurrentMario] += DEGREES(cameraSpeed);
 +        }
 +        gReonucamState.rButtonCounter++; // This increses whenever R is held.
 +    } else {
 +        if (gReonucamState.rButtonCounter > 0 && gReonucamState.rButtonCounter <= 5 && !((gPlayer1Controller->buttonDown & L_CBUTTONS) || (gPlayer1Controller->buttonDown & R_CBUTTONS) || (gMarioState->action & ACT_FLAG_SWIMMING_OR_FLYING))) {
 +            // This centers the camera behind mario. It triggers when you let go of R in less than 5 frames.
-+            s8DirModeYawOffset = 0;
-+            s8DirModeBaseYaw = gMarioState->faceAngle[1]-0x8000;
-+            gMarioState->area->camera[gCurrentMario]->yaw = s8DirModeBaseYaw;
++            s8DirModeYawOffset[gCurrentMario] = 0;
++            s8DirModeBaseYaw[gCurrentMario] = gMarioState->faceAngle[1]-0x8000;
++            gMarioState->area->camera[gCurrentMario]->yaw = s8DirModeBaseYaw[gCurrentMario];
 +            play_sound_rbutton_changed();
 +        }
 +        gReonucamState.rButtonCounter = 0;
@@ -171,7 +171,7 @@ index 819f235c..bdc07159 100644
 +        gReonucamState.rButtonCounter2++;
 +     }
 +    if (gPlayer1Controller->buttonPressed & D_JPAD) {
-+       s8DirModeBaseYaw = snap_to_45_degrees(s8DirModeBaseYaw); // Lock the camera to the nearest 45deg axis
++       s8DirModeBaseYaw[gCurrentMario] = snap_to_45_degrees(s8DirModeBaseYaw[gCurrentMario]); // Lock the camera to the nearest 45deg axis
 +    }
 +}
 +#endif
@@ -181,7 +181,7 @@ index 819f235c..bdc07159 100644
   */
  void mode_8_directions_camera(struct Camera *c) {
      Vec3f pos;
-     s16 oldAreaYaw = sAreaYaw;
+     s16 oldAreaYaw = sAreaYaw[gCurrentMario];
 -
 +#ifdef REONUCAM
 +    reonucam_handler();
@@ -191,7 +191,7 @@ index 819f235c..bdc07159 100644
  
      if (gPlayer1Controller->buttonPressed & R_CBUTTONS) {
 @@ -1148,13 +1239,18 @@ void mode_8_directions_camera(struct Camera *c) {
-         s8DirModeYawOffset = snap_to_45_degrees(s8DirModeYawOffset);
+         s8DirModeYawOffset[gCurrentMario] = snap_to_45_degrees(s8DirModeYawOffset[gCurrentMario]);
      }
  #endif
 -
@@ -203,7 +203,7 @@ index 819f235c..bdc07159 100644
 +#endif
      c->pos[0] = pos[0];
      c->pos[2] = pos[2];
-     sAreaYawChange = sAreaYaw - oldAreaYaw;
+     sAreaYawChange = sAreaYaw[gCurrentMario] - oldAreaYaw;
 +#ifndef REONUCAM
      set_camera_height(c, pos[1]);
 +#endif
@@ -215,9 +215,9 @@ index 819f235c..bdc07159 100644
          if (mode == CAMERA_MODE_8_DIRECTIONS) {
              // Helps transition from any camera mode to 8dir
 +#ifdef REONUCAM
-+            s8DirModeBaseYaw = 0;
++            s8DirModeBaseYaw[gCurrentMario] = 0;
 +#endif
-             s8DirModeYawOffset = snap_to_45_degrees(c->yaw);
+             s8DirModeYawOffset[gCurrentMario] = snap_to_45_degrees(c->yaw);
          }
  #endif
 @@ -2875,6 +2974,7 @@ void update_camera(struct Camera *c) {
@@ -234,7 +234,7 @@ index 819f235c..bdc07159 100644
              if (gPlayer1Controller->buttonPressed & R_TRIG) {
 +#ifdef REONUCAM
 +                if (set_cam_angle(0) == CAM_ANGLE_MARIO) {
-+                    s8DirModeBaseYaw = snap_to_45_degrees(s8DirModeBaseYaw);
++                    s8DirModeBaseYaw[gCurrentMario] = snap_to_45_degrees(s8DirModeBaseYaw[gCurrentMario]);
 +                    set_cam_angle(CAM_ANGLE_LAKITU);
 +                }              
 +#else
@@ -283,8 +283,8 @@ index 819f235c..bdc07159 100644
 +#else
      if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
 +#endif
-         if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
-             gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
+         if (gCameraMovementFlags[gCurrentMario] & CAM_MOVE_ZOOMED_OUT) {
+             gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_ZOOMED_OUT;
              play_sound_cbutton_up();
 @@ -4747,6 +4866,7 @@ void handle_c_button_movement(struct Camera *c) {
      }
@@ -297,13 +297,13 @@ index 819f235c..bdc07159 100644
 @@ -5212,7 +5332,11 @@ void set_camera_mode_8_directions(struct Camera *c) {
      if (c->mode != CAMERA_MODE_8_DIRECTIONS) {
          c->mode = CAMERA_MODE_8_DIRECTIONS;
-         sStatusFlags &= ~CAM_FLAG_SMOOTH_MOVEMENT;
+         sStatusFlags[gCurrentMario] &= ~CAM_FLAG_SMOOTH_MOVEMENT;
 +#ifdef REONUCAM
-+        s8DirModeBaseYaw = snap_to_45_degrees(s8DirModeBaseYaw);
++        s8DirModeBaseYaw[gCurrentMario] = snap_to_45_degrees(s8DirModeBaseYaw[gCurrentMario]);
 +#else
-         s8DirModeBaseYaw = 0;
+         s8DirModeBaseYaw[gCurrentMario] = 0;
 +#endif
-         s8DirModeYawOffset = 0;
+         s8DirModeYawOffset[gCurrentMario] = 0;
      }
  }
 diff --git a/src/game/camera.h b/src/game/camera.h

@@ -17,6 +17,7 @@
 #include "engine/math_util.h"
 #include "puppycam2.h"
 #include "puppyprint.h"
+#include "mario.h"
 
 #include "config.h"
 
@@ -588,7 +589,7 @@ void render_hud(void) {
         if (hudDisplayFlags & HUD_DISPLAY_FLAG_CAMERA_AND_POWER) {
             render_hud_power_meter();
 #ifdef PUPPYCAM
-            if (!gPuppyCam.enabled) {
+            if (!gPuppyCam[gCurrentMario].enabled) {
 #endif
             render_hud_camera_status();
 #ifdef PUPPYCAM

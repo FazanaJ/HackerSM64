@@ -25,6 +25,7 @@
 #include "skybox.h"
 #include "sound_init.h"
 #include "puppycam2.h"
+#include "mario.h"
 
 #include "config.h"
 
@@ -332,8 +333,8 @@ Gfx *geo_mirror_mario_set_alpha(s32 callContext, struct GraphNode *node, UNUSED 
     if (callContext == GEO_CONTEXT_RENDER) {
         alpha = (bodyState->modelState & MODEL_STATE_ALPHA) ? (bodyState->modelState & MODEL_STATE_MASK) : 0xFF;
 #ifdef PUPPYCAM
-        if (alpha > gPuppyCam.opacity) {
-            alpha = gPuppyCam.opacity;
+        if (alpha > gPuppyCam[0].opacity) {
+            alpha = gPuppyCam[0].opacity;
             bodyState->modelState |= MODEL_STATE_NOISE_ALPHA;
         }
 #endif

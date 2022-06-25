@@ -58,7 +58,7 @@ void bhv_grand_star_loop(void) {
         } else if (o->oVelY < 0.0f && o->oPosY < o->oHomeY + 200.0f) {
             o->oPosY = o->oHomeY + 200.0f;
             grand_star_zero_velocity();
-            gObjCutsceneDone = TRUE;
+            gObjCutsceneDone[gCurrentMario] = TRUE;
             set_mario_npc_dialog(MARIO_DIALOG_STOP);
             o->oAction++;
             o->oInteractStatus = INT_STATUS_NONE;

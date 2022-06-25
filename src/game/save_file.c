@@ -372,7 +372,7 @@ void puppycam_check_save(void) {
 }
 
 void puppycam_get_save(void) {
-    gPuppyCam.options = gSaveBuffer.menuData.saveOptions;
+    gPuppyCam[0].options = gSaveBuffer.menuData.saveOptions;
 
     gSaveBuffer.menuData.firstBoot = gSaveBuffer.menuData.firstBoot;
 #ifdef WIDE
@@ -383,7 +383,7 @@ void puppycam_get_save(void) {
 }
 
 void puppycam_set_save(void) {
-    gSaveBuffer.menuData.saveOptions = gPuppyCam.options;
+    gSaveBuffer.menuData.saveOptions = gPuppyCam[0].options;
 
     gSaveBuffer.menuData.firstBoot = 4;
 

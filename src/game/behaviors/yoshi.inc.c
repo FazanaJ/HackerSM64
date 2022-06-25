@@ -136,7 +136,7 @@ void yoshi_finish_jumping_and_despawn_loop(void) {
 
     if (o->oPosY < 2100.0f) {
         set_mario_npc_dialog(MARIO_DIALOG_STOP);
-        gObjCutsceneDone = TRUE;
+        gObjCutsceneDone[gCurrentMario] = TRUE;
         sYoshiDead = TRUE;
         o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
     }

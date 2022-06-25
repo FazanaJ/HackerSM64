@@ -41,7 +41,7 @@ static inline float softClamp(float x, float a, float b) {
 #define DEADZONE 20
 #define SCRIPT_MEMORY_POOL 0x1000
 
-struct gPuppyStruct gPuppyCam;
+struct gPuppyStruct gPuppyCam[NUM_PLAYERS];
 struct sPuppyVolume *sPuppyVolumeStack[MAX_PUPPYCAM_VOLUMES];
 s16 sFloorHeight  = 0;
 u8  gPCOptionOpen = 0;
@@ -89,13 +89,13 @@ static const struct gPCOptionStruct gPCOptions[] = { //If the min and max are 0 
 #if MULTILANG
     {/*Option Name*/ 8, /*Option Variable*/ &gInGameLanguage,       /*Option Value Text Start*/ 4, /*Option Minimum*/ 1, /*Option Maximum*/ 3},
 #endif
-    {/*Option Name*/ 0, /*Option Variable*/ &gPuppyCam.options.analogue,       /*Option Value Text Start*/ 0, /*Option Minimum*/ FALSE, /*Option Maximum*/ TRUE},
-    {/*Option Name*/ 6, /*Option Variable*/ &gPuppyCam.options.inputType,       /*Option Value Text Start*/ 2, /*Option Minimum*/ 0, /*Option Maximum*/ 2},
-    {/*Option Name*/ 1, /*Option Variable*/ &gPuppyCam.options.sensitivityX,   /*Option Value Text Start*/ 255, /*Option Minimum*/ 10, /*Option Maximum*/ 500},
-    {/*Option Name*/ 2, /*Option Variable*/ &gPuppyCam.options.sensitivityY,   /*Option Value Text Start*/ 255, /*Option Minimum*/ 10, /*Option Maximum*/ 500},
-    {/*Option Name*/ 3, /*Option Variable*/ &gPuppyCam.options.invertX,        /*Option Value Text Start*/ 0, /*Option Minimum*/ FALSE, /*Option Maximum*/ TRUE},
-    {/*Option Name*/ 4, /*Option Variable*/ &gPuppyCam.options.invertY,        /*Option Value Text Start*/ 0, /*Option Minimum*/ FALSE, /*Option Maximum*/ TRUE},
-    {/*Option Name*/ 5, /*Option Variable*/ &gPuppyCam.options.turnAggression, /*Option Value Text Start*/ 255, /*Option Minimum*/ 0, /*Option Maximum*/ 100},
+    {/*Option Name*/ 0, /*Option Variable*/ &gPuppyCam[0].options.analogue,       /*Option Value Text Start*/ 0, /*Option Minimum*/ FALSE, /*Option Maximum*/ TRUE},
+    {/*Option Name*/ 6, /*Option Variable*/ &gPuppyCam[0].options.inputType,       /*Option Value Text Start*/ 2, /*Option Minimum*/ 0, /*Option Maximum*/ 2},
+    {/*Option Name*/ 1, /*Option Variable*/ &gPuppyCam[0].options.sensitivityX,   /*Option Value Text Start*/ 255, /*Option Minimum*/ 10, /*Option Maximum*/ 500},
+    {/*Option Name*/ 2, /*Option Variable*/ &gPuppyCam[0].options.sensitivityY,   /*Option Value Text Start*/ 255, /*Option Minimum*/ 10, /*Option Maximum*/ 500},
+    {/*Option Name*/ 3, /*Option Variable*/ &gPuppyCam[0].options.invertX,        /*Option Value Text Start*/ 0, /*Option Minimum*/ FALSE, /*Option Maximum*/ TRUE},
+    {/*Option Name*/ 4, /*Option Variable*/ &gPuppyCam[0].options.invertY,        /*Option Value Text Start*/ 0, /*Option Minimum*/ FALSE, /*Option Maximum*/ TRUE},
+    {/*Option Name*/ 5, /*Option Variable*/ &gPuppyCam[0].options.turnAggression, /*Option Value Text Start*/ 255, /*Option Minimum*/ 0, /*Option Maximum*/ 100},
 };
 
 u8 gPCOptionCap = sizeof(gPCOptions) / sizeof(struct gPCOptionStruct); //How many options there are in newcam_uptions.
@@ -109,60 +109,60 @@ s16 LENCOS(s16 length, s16 direction) {
 
 static void puppycam_analogue_stick(void) {
 #ifdef TARGET_N64
-    if (!gPuppyCam.options.analogue) {
+    if (!gPuppyCam[0].options.analogue) {
         return;
     }
     // I make the X axis negative, so that the movement reflects the Cbuttons.
-    gPuppyCam.stick2[0] = -gPlayer2Controller->rawStickX;
-    gPuppyCam.stick2[1] =  gPlayer2Controller->rawStickY;
+    gPuppyCam[gCurrentMario].stick2[0] = -gPlayer2Controller->rawStickX;
+    gPuppyCam[gCurrentMario].stick2[1] =  gPlayer2Controller->rawStickY;
 
-    if (ABS(gPuppyCam.stick2[0]) < DEADZONE) {
-        gPuppyCam.stick2[0] = 0;
-        gPuppyCam.stickN[0] = 0;
+    if (ABS(gPuppyCam[gCurrentMario].stick2[0]) < DEADZONE) {
+        gPuppyCam[gCurrentMario].stick2[0] = 0;
+        gPuppyCam[gCurrentMario].stickN[0] = 0;
     }
-    if (ABS(gPuppyCam.stick2[1]) < DEADZONE) {
-        gPuppyCam.stick2[1] = 0;
-        gPuppyCam.stickN[1] = 0;
+    if (ABS(gPuppyCam[gCurrentMario].stick2[1]) < DEADZONE) {
+        gPuppyCam[gCurrentMario].stick2[1] = 0;
+        gPuppyCam[gCurrentMario].stickN[1] = 0;
     }
 #endif
 }
 
 void puppycam_default_config(void) {
-    gPuppyCam.options.invertX        = 1;
-    gPuppyCam.options.invertY        = 1;
-    gPuppyCam.options.sensitivityX   = 100;
-    gPuppyCam.options.sensitivityY   = 100;
-    gPuppyCam.options.turnAggression = 50;
-    gPuppyCam.options.analogue       = 0;
-    gPuppyCam.options.inputType      = 1;
+    gPuppyCam[0].options.invertX        = 1;
+    gPuppyCam[0].options.invertY        = 1;
+    gPuppyCam[0].options.sensitivityX   = 100;
+    gPuppyCam[0].options.sensitivityY   = 100;
+    gPuppyCam[0].options.turnAggression = 50;
+    gPuppyCam[0].options.analogue       = 0;
+    gPuppyCam[0].options.inputType      = 1;
 }
 
 // Initial setup. Ran at the beginning of the game and never again.
 void puppycam_boot(void) {
-    gPuppyCam.zoomPoints[0] = 600;
-    gPuppyCam.zoomPoints[1] = 1000;
-    gPuppyCam.zoomPoints[2] = 1500;
-    gPuppyCam.povHeight     = 125;
-    gPuppyCam.stick2[0]     = 0;
-    gPuppyCam.stick2[1]     = 0;
-    gPuppyCam.stickN[0]     = 0;
-    gPuppyCam.stickN[1]     = 0;
+    gPuppyCam[gCurrentMario].zoomPoints[0] = 600;
+    gPuppyCam[gCurrentMario].zoomPoints[1] = 1000;
+    gPuppyCam[gCurrentMario].zoomPoints[2] = 1500;
+    gPuppyCam[gCurrentMario].povHeight     = 125;
+    gPuppyCam[gCurrentMario].stick2[0]     = 0;
+    gPuppyCam[gCurrentMario].stick2[1]     = 0;
+    gPuppyCam[gCurrentMario].stickN[0]     = 0;
+    gPuppyCam[gCurrentMario].stickN[1]     = 0;
     gPuppyMemoryPool        = mem_pool_init(MAX_PUPPYCAM_VOLUMES * sizeof(struct sPuppyVolume), MEMORY_POOL_LEFT);
     gPuppyVolumeCount       = 0;
-    gPuppyCam.enabled       = 1;
+    gPuppyCam[gCurrentMario].enabled       = 1;
 
     puppycam_get_save();
 }
 
 // Called when an instant warp is done.
 void puppycam_warp(f32 displacementX, f32 displacementY, f32 displacementZ) {
-    gPuppyCam.pos[0]                += displacementX;
-    gPuppyCam.pos[1]                += displacementY;
-    gPuppyCam.pos[2]                += displacementZ;
-    gPuppyCam.targetFloorHeight     += displacementY;
-    gPuppyCam.lastTargetFloorHeight += displacementY;
-    gPuppyCam.floorY[0]             += displacementY;
-    gPuppyCam.floorY[1]             += displacementY;
+    gPuppyCam[gCurrentMario].pos[0]                += displacementX;
+    gPuppyCam[gCurrentMario].pos[1]                += displacementY;
+    gPuppyCam[gCurrentMario].pos[2]                += displacementZ;
+    gPuppyCam[gCurrentMario].targetFloorHeight     += displacementY;
+    gPuppyCam[gCurrentMario].lastTargetFloorHeight += displacementY;
+    gPuppyCam[gCurrentMario].floorY[0]             += displacementY;
+    gPuppyCam[gCurrentMario].floorY[1]             += displacementY;
 }
 
 #if MULTILANG
@@ -190,10 +190,10 @@ static void newcam_set_language(void) {
 ///CUTSCENE
 
 void puppycam_activate_cutscene(s32 (*scene)(), s32 lockinput) {
-    gPuppyCam.cutscene   = 1;
-    gPuppyCam.sceneTimer = 0;
-    gPuppyCam.sceneFunc  = scene;
-    gPuppyCam.sceneInput = lockinput;
+    gPuppyCam[gCurrentMario].cutscene   = 1;
+    gPuppyCam[gCurrentMario].sceneTimer = 0;
+    gPuppyCam[gCurrentMario].sceneFunc  = scene;
+    gPuppyCam[gCurrentMario].sceneInput = lockinput;
 }
 
 // If you've read camera.c this will look familiar.
@@ -223,61 +223,61 @@ s32 puppycam_move_spline(struct sPuppySpline splinePos[], struct sPuppySpline sp
     s32 i;
     Vec3f prevPos;
 
-    if (gPuppyCam.splineIndex == 65000) {
-        gPuppyCam.splineIndex = index;
+    if (gPuppyCam[gCurrentMario].splineIndex == 65000) {
+        gPuppyCam[gCurrentMario].splineIndex = index;
     }
-    if (splinePos[gPuppyCam.splineIndex].index == -1 || splinePos[gPuppyCam.splineIndex + 1].index == -1 || splinePos[gPuppyCam.splineIndex + 2].index == -1) {
+    if (splinePos[gPuppyCam[gCurrentMario].splineIndex].index == -1 || splinePos[gPuppyCam[gCurrentMario].splineIndex + 1].index == -1 || splinePos[gPuppyCam[gCurrentMario].splineIndex + 2].index == -1) {
         return TRUE;
     }
     if (mode == PUPPYSPLINE_FOLLOW) {
-        if (splineFocus[gPuppyCam.splineIndex].index == -1 || splineFocus[gPuppyCam.splineIndex + 1].index == -1 || splineFocus[gPuppyCam.splineIndex + 2].index == -1) {
+        if (splineFocus[gPuppyCam[gCurrentMario].splineIndex].index == -1 || splineFocus[gPuppyCam[gCurrentMario].splineIndex + 1].index == -1 || splineFocus[gPuppyCam[gCurrentMario].splineIndex + 2].index == -1) {
             return TRUE;
         }
     }
-    vec3f_set(prevPos, gPuppyCam.pos[0], gPuppyCam.pos[1], gPuppyCam.pos[2]);
+    vec3f_set(prevPos, gPuppyCam[gCurrentMario].pos[0], gPuppyCam[gCurrentMario].pos[1], gPuppyCam[gCurrentMario].pos[2]);
 
     for (i = 0; i < 4; i++) {
-        vec3f_set(tempPoints[i], splinePos[gPuppyCam.splineIndex + i].pos[0], splinePos[gPuppyCam.splineIndex + i].pos[1], splinePos[gPuppyCam.splineIndex + i].pos[2]);
+        vec3f_set(tempPoints[i], splinePos[gPuppyCam[gCurrentMario].splineIndex + i].pos[0], splinePos[gPuppyCam[gCurrentMario].splineIndex + i].pos[1], splinePos[gPuppyCam[gCurrentMario].splineIndex + i].pos[2]);
     }
-    puppycam_evaluate_spline(gPuppyCam.splineProgress, gPuppyCam.pos, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
+    puppycam_evaluate_spline(gPuppyCam[gCurrentMario].splineProgress, gPuppyCam[gCurrentMario].pos, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
     if (mode == PUPPYSPLINE_FOLLOW) {
         for (i = 0; i < 4; i++) {
-            vec3f_set(tempPoints[i], splineFocus[gPuppyCam.splineIndex + i].pos[0], splineFocus[gPuppyCam.splineIndex + i].pos[1], splineFocus[gPuppyCam.splineIndex + i].pos[2]);
+            vec3f_set(tempPoints[i], splineFocus[gPuppyCam[gCurrentMario].splineIndex + i].pos[0], splineFocus[gPuppyCam[gCurrentMario].splineIndex + i].pos[1], splineFocus[gPuppyCam[gCurrentMario].splineIndex + i].pos[2]);
         }
-        puppycam_evaluate_spline(gPuppyCam.splineProgress, gPuppyCam.focus, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
+        puppycam_evaluate_spline(gPuppyCam[gCurrentMario].splineProgress, gPuppyCam[gCurrentMario].focus, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
     }
 
-    if (splinePos[gPuppyCam.splineIndex+1].speed != 0) {
-        tempProgress[0] = 1.0f / splinePos[gPuppyCam.splineIndex+1].speed;
+    if (splinePos[gPuppyCam[gCurrentMario].splineIndex+1].speed != 0) {
+        tempProgress[0] = 1.0f / splinePos[gPuppyCam[gCurrentMario].splineIndex+1].speed;
     }
-    if (splinePos[gPuppyCam.splineIndex+2].speed != 0) {
-        tempProgress[1] = 1.0f / splinePos[gPuppyCam.splineIndex+2].speed;
+    if (splinePos[gPuppyCam[gCurrentMario].splineIndex+2].speed != 0) {
+        tempProgress[1] = 1.0f / splinePos[gPuppyCam[gCurrentMario].splineIndex+2].speed;
     }
-    progChange = (tempProgress[1] - tempProgress[0]) * gPuppyCam.splineProgress + tempProgress[0];
+    progChange = (tempProgress[1] - tempProgress[0]) * gPuppyCam[gCurrentMario].splineProgress + tempProgress[0];
 
-    gPuppyCam.splineProgress += progChange;
+    gPuppyCam[gCurrentMario].splineProgress += progChange;
 
-    if (gPuppyCam.splineProgress >= 1.0f) {
-        gPuppyCam.splineIndex++;
-        if (splinePos[gPuppyCam.splineIndex + 3].index == -1) {
-            gPuppyCam.splineIndex = 0;
-            gPuppyCam.splineProgress = 0;
+    if (gPuppyCam[gCurrentMario].splineProgress >= 1.0f) {
+        gPuppyCam[gCurrentMario].splineIndex++;
+        if (splinePos[gPuppyCam[gCurrentMario].splineIndex + 3].index == -1) {
+            gPuppyCam[gCurrentMario].splineIndex = 0;
+            gPuppyCam[gCurrentMario].splineProgress = 0;
             return TRUE;
         }
-        gPuppyCam.splineProgress -=1;
+        gPuppyCam[gCurrentMario].splineProgress -=1;
     }
 
     return FALSE;
 }
 
 static void puppycam_process_cutscene(void) {
-    if (gPuppyCam.cutscene) {
-        if ((gPuppyCam.sceneFunc)() == 1) {
-            gPuppyCam.cutscene = 0;
-            gPuppyCam.sceneInput = 0;
-            gPuppyCam.flags = gPuppyCam.intendedFlags;
+    if (gPuppyCam[gCurrentMario].cutscene) {
+        if ((gPuppyCam[gCurrentMario].sceneFunc)() == 1) {
+            gPuppyCam[gCurrentMario].cutscene = 0;
+            gPuppyCam[gCurrentMario].sceneInput = 0;
+            gPuppyCam[gCurrentMario].flags = gPuppyCam[gCurrentMario].intendedFlags;
         }
-        gPuppyCam.sceneTimer++;
+        gPuppyCam[gCurrentMario].sceneTimer++;
     }
 }
 
@@ -468,148 +468,148 @@ void puppycam_check_pause_buttons(void) {
 
 // Just a function that sets a bunch of camera values to 0. It's a function because it's got shared functionality.
 void puppycam_reset_values(void) {
-    gPuppyCam.swimPitch      = 0;
-    gPuppyCam.edgePitch      = 0;
-    gPuppyCam.moveZoom       = 0;
-    gPuppyCam.floorY[0]      = 0;
-    gPuppyCam.floorY[1]      = 0;
-    gPuppyCam.terrainPitch   = 0;
-    gPuppyCam.splineIndex    = 0;
-    gPuppyCam.splineProgress = 0;
+    gPuppyCam[gCurrentMario].swimPitch      = 0;
+    gPuppyCam[gCurrentMario].edgePitch      = 0;
+    gPuppyCam[gCurrentMario].moveZoom       = 0;
+    gPuppyCam[gCurrentMario].floorY[0]      = 0;
+    gPuppyCam[gCurrentMario].floorY[1]      = 0;
+    gPuppyCam[gCurrentMario].terrainPitch   = 0;
+    gPuppyCam[gCurrentMario].splineIndex    = 0;
+    gPuppyCam[gCurrentMario].splineProgress = 0;
 }
 
 // Set up values. Runs on level load.
 void puppycam_init(void) {
     if (gMarioState->marioObj) {
-        gPuppyCam.targetObj = gMarioState->marioObj;
+        gPuppyCam[gCurrentMario].targetObj = gMarioState->marioObj;
     }
-    gPuppyCam.targetObj2 = NULL;
+    gPuppyCam[gCurrentMario].targetObj2 = NULL;
 
-    gPuppyCam.intendedFlags = PUPPYCAM_BEHAVIOUR_DEFAULT;
+    gPuppyCam[gCurrentMario].intendedFlags = PUPPYCAM_BEHAVIOUR_DEFAULT;
 #ifndef DISABLE_LEVEL_SPECIFIC_CHECKS
     if (gCurrLevelNum == LEVEL_PSS || (gCurrLevelNum == LEVEL_TTM && gCurrAreaIndex == 2) || (gCurrLevelNum == LEVEL_CCM && gCurrAreaIndex == 2)) {
-        gPuppyCam.intendedFlags |= PUPPYCAM_BEHAVIOUR_SLIDE_CORRECTION;
+        gPuppyCam[gCurrentMario].intendedFlags |= PUPPYCAM_BEHAVIOUR_SLIDE_CORRECTION;
     }
 #endif
-    gPuppyCam.flags                 = gPuppyCam.intendedFlags;
-    gPuppyCam.zoom                  = gPuppyCam.zoomPoints[1];
-    gPuppyCam.zoomSet               = 1;
-    gPuppyCam.zoomTarget            = gPuppyCam.zoom;
-    gPuppyCam.yaw                   = gMarioState->faceAngle[1] + 0x8000;
-    gPuppyCam.yawTarget             = gPuppyCam.yaw;
-    gPuppyCam.pitch                 = 0x3800;
-    gPuppyCam.pitchTarget           = gPuppyCam.pitch;
-    gPuppyCam.yawAcceleration       = 0;
-    gPuppyCam.pitchAcceleration     = 0;
-    gPuppyCam.shakeFrames           = 0;
-    vec3_zero(gPuppyCam.shake);
-    vec3_zero(gPuppyCam.pos);
-    vec3_zero(gPuppyCam.focus);
-    vec3_zero(gPuppyCam.pan); // gMarioState->pos[1];
-    gPuppyCam.targetFloorHeight     = gPuppyCam.pan[1];
-    gPuppyCam.lastTargetFloorHeight = gMarioState->pos[1];
-    gPuppyCam.opacity               = 255;
-    gPuppyCam.framesSinceC[0]       = 10; // This just exists to stop input type B being stupid.
-    gPuppyCam.framesSinceC[1]       = 10; // This just exists to stop input type B being stupid.
-    gPuppyCam.mode3Flags            = PUPPYCAM_MODE3_ZOOMED_MED;
-    gPuppyCam.debugFlags            = PUPPYDEBUG_LOCK_CONTROLS;
+    gPuppyCam[gCurrentMario].flags                 = gPuppyCam[gCurrentMario].intendedFlags;
+    gPuppyCam[gCurrentMario].zoom                  = gPuppyCam[gCurrentMario].zoomPoints[1];
+    gPuppyCam[gCurrentMario].zoomSet               = 1;
+    gPuppyCam[gCurrentMario].zoomTarget            = gPuppyCam[gCurrentMario].zoom;
+    gPuppyCam[gCurrentMario].yaw                   = gMarioState->faceAngle[1] + 0x8000;
+    gPuppyCam[gCurrentMario].yawTarget             = gPuppyCam[gCurrentMario].yaw;
+    gPuppyCam[gCurrentMario].pitch                 = 0x3800;
+    gPuppyCam[gCurrentMario].pitchTarget           = gPuppyCam[gCurrentMario].pitch;
+    gPuppyCam[gCurrentMario].yawAcceleration       = 0;
+    gPuppyCam[gCurrentMario].pitchAcceleration     = 0;
+    gPuppyCam[gCurrentMario].shakeFrames           = 0;
+    vec3_zero(gPuppyCam[gCurrentMario].shake);
+    vec3_zero(gPuppyCam[gCurrentMario].pos);
+    vec3_zero(gPuppyCam[gCurrentMario].focus);
+    vec3_zero(gPuppyCam[gCurrentMario].pan); // gMarioState->pos[1];
+    gPuppyCam[gCurrentMario].targetFloorHeight     = gPuppyCam[gCurrentMario].pan[1];
+    gPuppyCam[gCurrentMario].lastTargetFloorHeight = gMarioState->pos[1];
+    gPuppyCam[gCurrentMario].opacity               = 255;
+    gPuppyCam[gCurrentMario].framesSinceC[0]       = 10; // This just exists to stop input type B being stupid.
+    gPuppyCam[gCurrentMario].framesSinceC[1]       = 10; // This just exists to stop input type B being stupid.
+    gPuppyCam[gCurrentMario].mode3Flags            = PUPPYCAM_MODE3_ZOOMED_MED;
+    gPuppyCam[gCurrentMario].debugFlags            = PUPPYDEBUG_LOCK_CONTROLS;
     puppycam_reset_values();
 }
 
 void puppycam_input_pitch(void) {
-    if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_PITCH_ROTATION) {
+    if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_PITCH_ROTATION) {
         // Handles vertical inputs.
-        if (gPlayer1Controller->buttonDown & U_CBUTTONS || gPuppyCam.stick2[1] != 0) {
-            gPuppyCam.pitchAcceleration -= 50 * (gPuppyCam.options.sensitivityY / 100.f);
-        } else if (gPlayer1Controller->buttonDown & D_CBUTTONS || gPuppyCam.stick2[1] != 0) {
-            gPuppyCam.pitchAcceleration += 50 * (gPuppyCam.options.sensitivityY / 100.f);
+        if (gPlayer1Controller->buttonDown & U_CBUTTONS || gPuppyCam[gCurrentMario].stick2[1] != 0) {
+            gPuppyCam[gCurrentMario].pitchAcceleration -= 50 * (gPuppyCam[0].options.sensitivityY / 100.f);
+        } else if (gPlayer1Controller->buttonDown & D_CBUTTONS || gPuppyCam[gCurrentMario].stick2[1] != 0) {
+            gPuppyCam[gCurrentMario].pitchAcceleration += 50 * (gPuppyCam[0].options.sensitivityY / 100.f);
         } else {
-            gPuppyCam.pitchAcceleration = 0;
+            gPuppyCam[gCurrentMario].pitchAcceleration = 0;
         }
-        gPuppyCam.pitchAcceleration = CLAMP(gPuppyCam.pitchAcceleration, -100, 100);
+        gPuppyCam[gCurrentMario].pitchAcceleration = CLAMP(gPuppyCam[gCurrentMario].pitchAcceleration, -100, 100);
 
         // When Mario's moving, his pitch is clamped pretty aggressively, so this exists so you can shift your view up and down momentarily at an actually usable range, rather than the otherwise baby range.
-        if (gMarioState->action & ACT_FLAG_MOVING && (gPuppyCam.pitch >= 0x3800 || gPuppyCam.pitch <= 0x2000)) {
-            gPuppyCam.moveFlagAdd = 8;
+        if (gMarioState->action & ACT_FLAG_MOVING && (gPuppyCam[gCurrentMario].pitch >= 0x3800 || gPuppyCam[gCurrentMario].pitch <= 0x2000)) {
+            gPuppyCam[gCurrentMario].moveFlagAdd = 8;
         }
     }
 }
 
 void puppycam_input_zoom(void) {
     // Handles R button zooming.
-    if (gPlayer1Controller->buttonPressed & R_TRIG && gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_ZOOM_CHANGE) {
-        gPuppyCam.zoomSet++;
+    if (gPlayer1Controller->buttonPressed & R_TRIG && gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_ZOOM_CHANGE) {
+        gPuppyCam[gCurrentMario].zoomSet++;
 
-        if (gPuppyCam.zoomSet >= 3) {
-            gPuppyCam.zoomSet = 0;
+        if (gPuppyCam[gCurrentMario].zoomSet >= 3) {
+            gPuppyCam[gCurrentMario].zoomSet = 0;
         }
-        gPuppyCam.zoomTarget = gPuppyCam.zoomPoints[gPuppyCam.zoomSet];
+        gPuppyCam[gCurrentMario].zoomTarget = gPuppyCam[gCurrentMario].zoomPoints[gPuppyCam[gCurrentMario].zoomSet];
         play_sound(SOUND_MENU_CLICK_CHANGE_VIEW,gGlobalSoundSource);
     }
 }
 
 void puppycam_input_centre(void) {
-    if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_FREE) {
+    if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_FREE) {
         return;
     }
     s32 inputDefault = L_TRIG;
-    if (gPuppyCam.options.inputType == 2) {
+    if (gPuppyCam[0].options.inputType == 2) {
         inputDefault = R_TRIG;
     }
     // Handles L button centering.
-    if (gPlayer1Controller->buttonPressed & inputDefault && gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION &&
-    !(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) && !(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) && !(gPlayer1Controller->buttonDown & U_JPAD)) {
-        gPuppyCam.yawTarget = gMarioState->faceAngle[1] + 0x8000;
+    if (gPlayer1Controller->buttonPressed & inputDefault && gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION &&
+    !(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) && !(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) && !(gPlayer1Controller->buttonDown & U_JPAD)) {
+        gPuppyCam[gCurrentMario].yawTarget = gMarioState->faceAngle[1] + 0x8000;
         play_sound(SOUND_MENU_CLICK_CHANGE_VIEW,gGlobalSoundSource);
     }
 }
 
 // The default control scheme. Hold the button down to turn the camera, and double tap to turn quickly.
 static void puppycam_input_hold_preset1(f32 ivX) {
-    if (!gPuppyCam.options.analogue && gPlayer1Controller->buttonPressed & L_CBUTTONS && gPuppyCam.framesSinceC[0] <= 5) {
-        gPuppyCam.yawTarget -= 0x4000 * ivX;
+    if (!gPuppyCam[0].options.analogue && gPlayer1Controller->buttonPressed & L_CBUTTONS && gPuppyCam[gCurrentMario].framesSinceC[0] <= 5) {
+        gPuppyCam[gCurrentMario].yawTarget -= 0x4000 * ivX;
         play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
-    } else if (!gPuppyCam.options.analogue && gPlayer1Controller->buttonPressed & R_CBUTTONS && gPuppyCam.framesSinceC[1] <= 5) {
-        gPuppyCam.yawTarget += 0x4000 * ivX;
+    } else if (!gPuppyCam[0].options.analogue && gPlayer1Controller->buttonPressed & R_CBUTTONS && gPuppyCam[gCurrentMario].framesSinceC[1] <= 5) {
+        gPuppyCam[gCurrentMario].yawTarget += 0x4000 * ivX;
         play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
     }
 
-    if ((gPlayer1Controller->buttonDown & L_CBUTTONS && !gPuppyCam.options.analogue) || gPuppyCam.stick2[0] != 0) {
-        gPuppyCam.yawAcceleration -= 75 * (gPuppyCam.options.sensitivityX / 100.f);
-        gPuppyCam.framesSinceC[0] = 0;
-    } else if ((gPlayer1Controller->buttonDown & R_CBUTTONS && !gPuppyCam.options.analogue) || gPuppyCam.stick2[0] != 0) {
-        gPuppyCam.yawAcceleration += 75*(gPuppyCam.options.sensitivityX / 100.f);
-        gPuppyCam.framesSinceC[1] = 0;
+    if ((gPlayer1Controller->buttonDown & L_CBUTTONS && !gPuppyCam[0].options.analogue) || gPuppyCam[gCurrentMario].stick2[0] != 0) {
+        gPuppyCam[gCurrentMario].yawAcceleration -= 75 * (gPuppyCam[0].options.sensitivityX / 100.f);
+        gPuppyCam[gCurrentMario].framesSinceC[0] = 0;
+    } else if ((gPlayer1Controller->buttonDown & R_CBUTTONS && !gPuppyCam[0].options.analogue) || gPuppyCam[gCurrentMario].stick2[0] != 0) {
+        gPuppyCam[gCurrentMario].yawAcceleration += 75*(gPuppyCam[0].options.sensitivityX / 100.f);
+        gPuppyCam[gCurrentMario].framesSinceC[1] = 0;
     } else {
-        gPuppyCam.yawAcceleration = 0;
+        gPuppyCam[gCurrentMario].yawAcceleration = 0;
     }
 }
 
 // An alternative control scheme, hold the button down to turn the camera, or press it once to turn it quickly.
 static void puppycam_input_hold_preset2(f32 ivX) {
     // These set the initial button press.
-    if (gPlayer1Controller->buttonPressed & L_CBUTTONS) gPuppyCam.framesSinceC[0] = 0;
-    if (gPlayer1Controller->buttonPressed & R_CBUTTONS) gPuppyCam.framesSinceC[1] = 0;
+    if (gPlayer1Controller->buttonPressed & L_CBUTTONS) gPuppyCam[gCurrentMario].framesSinceC[0] = 0;
+    if (gPlayer1Controller->buttonPressed & R_CBUTTONS) gPuppyCam[gCurrentMario].framesSinceC[1] = 0;
     // These handle when you release the button
-    if ((!(gPlayer1Controller->buttonDown & L_CBUTTONS)) && gPuppyCam.framesSinceC[0] <= 5) {
-        gPuppyCam.yawTarget -= 0x3000 * ivX;
+    if ((!(gPlayer1Controller->buttonDown & L_CBUTTONS)) && gPuppyCam[gCurrentMario].framesSinceC[0] <= 5) {
+        gPuppyCam[gCurrentMario].yawTarget -= 0x3000 * ivX;
         play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
-        gPuppyCam.framesSinceC[0] = 6;
+        gPuppyCam[gCurrentMario].framesSinceC[0] = 6;
     }
 
-    if ((!(gPlayer1Controller->buttonDown & R_CBUTTONS)) && gPuppyCam.framesSinceC[1] <= 5) {
-        gPuppyCam.yawTarget += 0x3000 * ivX;
+    if ((!(gPlayer1Controller->buttonDown & R_CBUTTONS)) && gPuppyCam[gCurrentMario].framesSinceC[1] <= 5) {
+        gPuppyCam[gCurrentMario].yawTarget += 0x3000 * ivX;
         play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
-        gPuppyCam.framesSinceC[1] = 6;
+        gPuppyCam[gCurrentMario].framesSinceC[1] = 6;
     }
 
     // Handles continuous movement as normal, as long as the button's held.
     if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-        gPuppyCam.yawAcceleration -= 75 * (gPuppyCam.options.sensitivityX / 100.f);
+        gPuppyCam[gCurrentMario].yawAcceleration -= 75 * (gPuppyCam[0].options.sensitivityX / 100.f);
     } else if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-        gPuppyCam.yawAcceleration += 75 * (gPuppyCam.options.sensitivityX / 100.f);
+        gPuppyCam[gCurrentMario].yawAcceleration += 75 * (gPuppyCam[0].options.sensitivityX / 100.f);
     } else {
-        gPuppyCam.yawAcceleration = 0;
+        gPuppyCam[gCurrentMario].yawAcceleration = 0;
     }
 }
 
@@ -617,82 +617,82 @@ static void puppycam_input_hold_preset2(f32 ivX) {
 static void puppycam_input_hold_preset3(void) {
     f32 stickMag[2] = {gPlayer1Controller->rawStickX*0.65f, gPlayer1Controller->rawStickY*0.2f};
     // Just in case it happens to be nonzero.
-    gPuppyCam.yawAcceleration = 0;
+    gPuppyCam[gCurrentMario].yawAcceleration = 0;
 
     //In theory this shouldn't be necessary, but it's nice to cover all bases.
-    if (!(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION)) {
+    if (!(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION)) {
         return;
     }
-    if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_IN) {
-        gPuppyCam.flags &= ~PUPPYCAM_BEHAVIOUR_COLLISION;
+    if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_IN) {
+        gPuppyCam[gCurrentMario].flags &= ~PUPPYCAM_BEHAVIOUR_COLLISION;
 
         // Handles continuous movement as normal, as long as the button's held.
         if (ABS(gPlayer1Controller->rawStickX) > DEADZONE) {
-            gPuppyCam.yawAcceleration -= (gPuppyCam.options.sensitivityX / 100.f) * stickMag[0];
+            gPuppyCam[gCurrentMario].yawAcceleration -= (gPuppyCam[0].options.sensitivityX / 100.f) * stickMag[0];
         } else {
-            gPuppyCam.yawAcceleration = 0;
+            gPuppyCam[gCurrentMario].yawAcceleration = 0;
         }
         if (ABS(gPlayer1Controller->rawStickY) > DEADZONE) {
-            gPuppyCam.pitchAcceleration -= (gPuppyCam.options.sensitivityY / 100.f) * stickMag[1];
+            gPuppyCam[gCurrentMario].pitchAcceleration -= (gPuppyCam[0].options.sensitivityY / 100.f) * stickMag[1];
         } else {
-            gPuppyCam.pitchAcceleration = approach_f32_asymptotic(gPuppyCam.pitchAcceleration, 0, DECELERATION);
+            gPuppyCam[gCurrentMario].pitchAcceleration = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pitchAcceleration, 0, DECELERATION);
         }
     } else {
-        if ((gPlayer1Controller->buttonPressed & L_TRIG) && (gPuppyCam.yawTarget % 0x2000)) {
-            gPuppyCam.yawTarget += 0x2000 - gPuppyCam.yawTarget % 0x2000;
+        if ((gPlayer1Controller->buttonPressed & L_TRIG) && (gPuppyCam[gCurrentMario].yawTarget % 0x2000)) {
+            gPuppyCam[gCurrentMario].yawTarget += 0x2000 - gPuppyCam[gCurrentMario].yawTarget % 0x2000;
         }
 
-        if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_MED) gPuppyCam.pitchTarget = approach_s32(gPuppyCam.pitchTarget, 0x3800, 0x200, 0x200);
-        if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_OUT) gPuppyCam.pitchTarget = approach_s32(gPuppyCam.pitchTarget, 0x3000, 0x200, 0x200);
+        if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_MED) gPuppyCam[gCurrentMario].pitchTarget = approach_s32(gPuppyCam[gCurrentMario].pitchTarget, 0x3800, 0x200, 0x200);
+        if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_OUT) gPuppyCam[gCurrentMario].pitchTarget = approach_s32(gPuppyCam[gCurrentMario].pitchTarget, 0x3000, 0x200, 0x200);
 
-        if ((gPlayer1Controller->buttonPressed & L_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stick2[0] > DEADZONE && !gPuppyCam.stickN[0])) {
-            gPuppyCam.stickN[0]  = 1;
-            gPuppyCam.yawTarget -= 0x2000;
+        if ((gPlayer1Controller->buttonPressed & L_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stick2[0] > DEADZONE && !gPuppyCam[gCurrentMario].stickN[0])) {
+            gPuppyCam[gCurrentMario].stickN[0]  = 1;
+            gPuppyCam[gCurrentMario].yawTarget -= 0x2000;
             play_sound(SOUND_MENU_CAMERA_TURN,gGlobalSoundSource);
         }
-        if ((gPlayer1Controller->buttonPressed & R_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stick2[0] < -DEADZONE && !gPuppyCam.stickN[0])) {
-            gPuppyCam.stickN[0]  = 1;
-            gPuppyCam.yawTarget += 0x2000;
+        if ((gPlayer1Controller->buttonPressed & R_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stick2[0] < -DEADZONE && !gPuppyCam[gCurrentMario].stickN[0])) {
+            gPuppyCam[gCurrentMario].stickN[0]  = 1;
+            gPuppyCam[gCurrentMario].yawTarget += 0x2000;
             play_sound(SOUND_MENU_CAMERA_TURN,gGlobalSoundSource);
         }
     }
 
     // Handles zooming in. Works just like vanilla.
-    if ((gPlayer1Controller->buttonPressed & U_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stick2[1] > DEADZONE && !gPuppyCam.stickN[1])) {
-        if ((gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_MED) && !(gMarioState->action & ACT_FLAG_AIR) && !(gMarioState->action & ACT_FLAG_SWIMMING)) {
-            gPuppyCam.stickN[1]   = 1;
-            gPuppyCam.mode3Flags |= PUPPYCAM_MODE3_ZOOMED_IN;
-            gPuppyCam.mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_MED;
-            gPuppyCam.zoomTarget  = 200;
-            gPuppyCam.mode3Flags |= PUPPYCAM_MODE3_ENTER_FIRST_PERSON;
+    if ((gPlayer1Controller->buttonPressed & U_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stick2[1] > DEADZONE && !gPuppyCam[gCurrentMario].stickN[1])) {
+        if ((gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_MED) && !(gMarioState->action & ACT_FLAG_AIR) && !(gMarioState->action & ACT_FLAG_SWIMMING)) {
+            gPuppyCam[gCurrentMario].stickN[1]   = 1;
+            gPuppyCam[gCurrentMario].mode3Flags |= PUPPYCAM_MODE3_ZOOMED_IN;
+            gPuppyCam[gCurrentMario].mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_MED;
+            gPuppyCam[gCurrentMario].zoomTarget  = 200;
+            gPuppyCam[gCurrentMario].mode3Flags |= PUPPYCAM_MODE3_ENTER_FIRST_PERSON;
 
             play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
-        } else if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_OUT) {
-            gPuppyCam.stickN[1]   = 1;
-            gPuppyCam.mode3Flags |= PUPPYCAM_MODE3_ZOOMED_MED;
-            gPuppyCam.mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_OUT;
-            gPuppyCam.zoomTarget  = gPuppyCam.zoomPoints[1];
+        } else if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_OUT) {
+            gPuppyCam[gCurrentMario].stickN[1]   = 1;
+            gPuppyCam[gCurrentMario].mode3Flags |= PUPPYCAM_MODE3_ZOOMED_MED;
+            gPuppyCam[gCurrentMario].mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_OUT;
+            gPuppyCam[gCurrentMario].zoomTarget  = gPuppyCam[gCurrentMario].zoomPoints[1];
 
             play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
         }
-    } else  if ((gPlayer1Controller->buttonPressed & D_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stick2[1] < -DEADZONE && !gPuppyCam.stickN[1])) { // Otherwise handle zooming out.
-        if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_MED) {
-            gPuppyCam.stickN[1] = 1;
-            gPuppyCam.mode3Flags |= PUPPYCAM_MODE3_ZOOMED_OUT;
-            gPuppyCam.mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_MED;
-            gPuppyCam.zoomTarget = gPuppyCam.zoomPoints[2];
+    } else  if ((gPlayer1Controller->buttonPressed & D_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stick2[1] < -DEADZONE && !gPuppyCam[gCurrentMario].stickN[1])) { // Otherwise handle zooming out.
+        if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_MED) {
+            gPuppyCam[gCurrentMario].stickN[1] = 1;
+            gPuppyCam[gCurrentMario].mode3Flags |= PUPPYCAM_MODE3_ZOOMED_OUT;
+            gPuppyCam[gCurrentMario].mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_MED;
+            gPuppyCam[gCurrentMario].zoomTarget = gPuppyCam[gCurrentMario].zoomPoints[2];
 
             play_sound(SOUND_MENU_CAMERA_ZOOM_OUT, gGlobalSoundSource);
         }
     }
-    if ((gPlayer1Controller->buttonPressed & D_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stick2[1] < -DEADZONE && !gPuppyCam.stickN[1]) ||
+    if ((gPlayer1Controller->buttonPressed & D_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stick2[1] < -DEADZONE && !gPuppyCam[gCurrentMario].stickN[1]) ||
         gPlayer1Controller->buttonPressed & B_BUTTON || gPlayer1Controller->buttonPressed & A_BUTTON) {
-        if (gPuppyCam.mode3Flags & PUPPYCAM_MODE3_ZOOMED_IN) {
-            gPuppyCam.stickN[1]   = 1;
-            gPuppyCam.mode3Flags |= PUPPYCAM_MODE3_ZOOMED_MED;
-            gPuppyCam.mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_IN;
-            gPuppyCam.zoomTarget  = gPuppyCam.zoomPoints[1];
-            gPuppyCam.mode3Flags &= ~PUPPYCAM_MODE3_ENTER_FIRST_PERSON;
+        if (gPuppyCam[gCurrentMario].mode3Flags & PUPPYCAM_MODE3_ZOOMED_IN) {
+            gPuppyCam[gCurrentMario].stickN[1]   = 1;
+            gPuppyCam[gCurrentMario].mode3Flags |= PUPPYCAM_MODE3_ZOOMED_MED;
+            gPuppyCam[gCurrentMario].mode3Flags &= ~PUPPYCAM_MODE3_ZOOMED_IN;
+            gPuppyCam[gCurrentMario].zoomTarget  = gPuppyCam[gCurrentMario].zoomPoints[1];
+            gPuppyCam[gCurrentMario].mode3Flags &= ~PUPPYCAM_MODE3_ENTER_FIRST_PERSON;
 
             play_sound(SOUND_MENU_CAMERA_ZOOM_OUT, gGlobalSoundSource);
         }
@@ -701,25 +701,25 @@ static void puppycam_input_hold_preset3(void) {
 
 // Handles C Button inputs for modes that have held inputs, rather than presses.
 static void puppycam_input_hold(void) {
-    f32 ivX = ((gPuppyCam.options.invertX * 2) - 1) * (gPuppyCam.options.sensitivityX / 100.f);
-    f32 ivY = ((gPuppyCam.options.invertY * 2) - 1) * (gPuppyCam.options.sensitivityY / 100.f);
+    f32 ivX = ((gPuppyCam[0].options.invertX * 2) - 1) * (gPuppyCam[0].options.sensitivityX / 100.f);
+    f32 ivY = ((gPuppyCam[0].options.invertY * 2) - 1) * (gPuppyCam[0].options.sensitivityY / 100.f);
     s8 stickMag[2] = {100, 100};
 
-    if (gPuppyCam.intendedFlags & PUPPYCAM_BEHAVIOUR_FREE) {
-        gPuppyCam.flags = PUPPYCAM_BEHAVIOUR_FREE | PUPPYCAM_BEHAVIOUR_YAW_ROTATION | PUPPYCAM_BEHAVIOUR_PITCH_ROTATION;
+    if (gPuppyCam[gCurrentMario].intendedFlags & PUPPYCAM_BEHAVIOUR_FREE) {
+        gPuppyCam[gCurrentMario].flags = PUPPYCAM_BEHAVIOUR_FREE | PUPPYCAM_BEHAVIOUR_YAW_ROTATION | PUPPYCAM_BEHAVIOUR_PITCH_ROTATION;
     }
     // Analogue Camera stuff. If it fails to find an input, then it just sets stickmag to 100, which after calculations means the value goes unchanged.
-    if (gPuppyCam.options.analogue && gPuppyCam.options.inputType != 2) {
-        stickMag[0] = gPuppyCam.stick2[0] * 1.25f;
-        stickMag[1] = gPuppyCam.stick2[1] * 1.25f;
+    if (gPuppyCam[0].options.analogue && gPuppyCam[0].options.inputType != 2) {
+        stickMag[0] = gPuppyCam[gCurrentMario].stick2[0] * 1.25f;
+        stickMag[1] = gPuppyCam[gCurrentMario].stick2[1] * 1.25f;
     }
 
     //In theory this shouldn't be necessary, but it's nice to cover all bases.
-    if (!(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION)) {
+    if (!(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION)) {
         return;
     }
-    if ((!gPuppyCam.options.analogue || gPuppyCam.options.inputType == 2) && !(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_FREE)) {
-        switch (gPuppyCam.options.inputType) {
+    if ((!gPuppyCam[0].options.analogue || gPuppyCam[0].options.inputType == 2) && !(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_FREE)) {
+        switch (gPuppyCam[0].options.inputType) {
             default: puppycam_input_hold_preset1(ivX); puppycam_input_pitch(); puppycam_input_zoom(); puppycam_input_centre(); break;
             case 1:  puppycam_input_hold_preset2(ivX); puppycam_input_pitch(); puppycam_input_zoom(); puppycam_input_centre(); break;
             case 2:  puppycam_input_hold_preset3();                                                   puppycam_input_centre(); break;
@@ -731,181 +731,181 @@ static void puppycam_input_hold(void) {
         puppycam_input_centre();
     }
 
-    gPuppyCam.framesSinceC[0]++;
-    gPuppyCam.framesSinceC[1]++;
+    gPuppyCam[gCurrentMario].framesSinceC[0]++;
+    gPuppyCam[gCurrentMario].framesSinceC[1]++;
 
-    gPuppyCam.yawAcceleration = CLAMP(gPuppyCam.yawAcceleration, -100, 100);
+    gPuppyCam[gCurrentMario].yawAcceleration = CLAMP(gPuppyCam[gCurrentMario].yawAcceleration, -100, 100);
 
-    gPuppyCam.yawTarget += (12 * gPuppyCam.yawAcceleration * ivX) * (stickMag[0] * 0.01f);
-    gPuppyCam.pitchTarget += ((4 + gPuppyCam.moveFlagAdd) * gPuppyCam.pitchAcceleration * ivY) * (stickMag[1] * 0.01f);
+    gPuppyCam[gCurrentMario].yawTarget += (12 * gPuppyCam[gCurrentMario].yawAcceleration * ivX) * (stickMag[0] * 0.01f);
+    gPuppyCam[gCurrentMario].pitchTarget += ((4 + gPuppyCam[gCurrentMario].moveFlagAdd) * gPuppyCam[gCurrentMario].pitchAcceleration * ivY) * (stickMag[1] * 0.01f);
 }
 
 // Handles C Button inputs for modes that have pressed inputs, rather than held.
 static void puppycam_input_press(void) {
-    f32 ivX = ((gPuppyCam.options.invertX * 2) - 1) * (gPuppyCam.options.sensitivityX / 100.f);
-    f32 ivY = ((gPuppyCam.options.invertY * 2) - 1) * (gPuppyCam.options.sensitivityY / 100.f);
+    f32 ivX = ((gPuppyCam[0].options.invertX * 2) - 1) * (gPuppyCam[0].options.sensitivityX / 100.f);
+    f32 ivY = ((gPuppyCam[0].options.invertY * 2) - 1) * (gPuppyCam[0].options.sensitivityY / 100.f);
     s8 stickMag = 0;
 
     // Analogue Camera stuff. If it fails to find an input, then it just sets stickmag to 100, which after calculations means the value goes unchanged.
-    if (gPuppyCam.options.analogue) {
-        stickMag = gPuppyCam.stick2[0] * 1.25f;
+    if (gPuppyCam[0].options.analogue) {
+        stickMag = gPuppyCam[gCurrentMario].stick2[0] * 1.25f;
     } else {
         stickMag = 100;
     }
     // Just in case it happens to be nonzero.
-    gPuppyCam.yawAcceleration = 0;
+    gPuppyCam[gCurrentMario].yawAcceleration = 0;
 
     // In theory this shouldn't be necessary, but it's nice to cover all bases.
-    if (!(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION)) {
+    if (!(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_YAW_ROTATION)) {
         return;
     }
-    if ((gPlayer1Controller->buttonPressed & L_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stickN[0] == 0 && gPuppyCam.stick2[0] < -DEADZONE)) {
-        gPuppyCam.stickN[0] = 1;
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) {
-            gPuppyCam.yawTarget -= 0x2000 * ivX;
+    if ((gPlayer1Controller->buttonPressed & L_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stickN[0] == 0 && gPuppyCam[gCurrentMario].stick2[0] < -DEADZONE)) {
+        gPuppyCam[gCurrentMario].stickN[0] = 1;
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) {
+            gPuppyCam[gCurrentMario].yawTarget -= 0x2000 * ivX;
         } else {
-            gPuppyCam.yawTarget -= 0x4000 * ivX;
+            gPuppyCam[gCurrentMario].yawTarget -= 0x4000 * ivX;
         }
         play_sound(SOUND_MENU_CAMERA_ZOOM_IN,gGlobalSoundSource);
     }
 
-    if ((gPlayer1Controller->buttonPressed & R_CBUTTONS && !gPuppyCam.options.analogue) || (gPuppyCam.stickN[0] == 0 && gPuppyCam.stick2[0] > DEADZONE)) {
-        gPuppyCam.stickN[0] = 1;
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) {
-            gPuppyCam.yawTarget += 0x2000 * ivX;
+    if ((gPlayer1Controller->buttonPressed & R_CBUTTONS && !gPuppyCam[0].options.analogue) || (gPuppyCam[gCurrentMario].stickN[0] == 0 && gPuppyCam[gCurrentMario].stick2[0] > DEADZONE)) {
+        gPuppyCam[gCurrentMario].stickN[0] = 1;
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) {
+            gPuppyCam[gCurrentMario].yawTarget += 0x2000 * ivX;
         } else {
-            gPuppyCam.yawTarget += 0x4000 * ivX;
+            gPuppyCam[gCurrentMario].yawTarget += 0x4000 * ivX;
         }
         play_sound(SOUND_MENU_CAMERA_ZOOM_IN,gGlobalSoundSource);
     }
     puppycam_input_pitch();
     puppycam_input_zoom();
     puppycam_input_centre();
-    gPuppyCam.pitchTarget += ((4 + gPuppyCam.moveFlagAdd) * gPuppyCam.pitchAcceleration * ivY) * (stickMag * 0.01f);
+    gPuppyCam[gCurrentMario].pitchTarget += ((4 + gPuppyCam[gCurrentMario].moveFlagAdd) * gPuppyCam[gCurrentMario].pitchAcceleration * ivY) * (stickMag * 0.01f);
 }
 
 void puppycam_debug_view(void) {
-    if (gPuppyCam.debugFlags & PUPPYDEBUG_LOCK_CONTROLS) {
+    if (gPuppyCam[gCurrentMario].debugFlags & PUPPYDEBUG_LOCK_CONTROLS) {
         if (ABS(gPlayer1Controller->rawStickX) > DEADZONE) {
-            gPuppyCam.pos[0] += (gPlayer1Controller->rawStickX / 4) * -sins(gPuppyCam.yawTarget);
-            gPuppyCam.pos[2] += (gPlayer1Controller->rawStickX / 4) *  coss(gPuppyCam.yawTarget);
+            gPuppyCam[gCurrentMario].pos[0] += (gPlayer1Controller->rawStickX / 4) * -sins(gPuppyCam[gCurrentMario].yawTarget);
+            gPuppyCam[gCurrentMario].pos[2] += (gPlayer1Controller->rawStickX / 4) *  coss(gPuppyCam[gCurrentMario].yawTarget);
         }
         if (ABS(gPlayer1Controller->rawStickY) > DEADZONE) {
-            gPuppyCam.pos[0] += (gPlayer1Controller->rawStickY / 4) *  coss(gPuppyCam.yawTarget);
-            gPuppyCam.pos[1] += (gPlayer1Controller->rawStickY / 4) *  sins(gPuppyCam.pitchTarget);
-            gPuppyCam.pos[2] += (gPlayer1Controller->rawStickY / 4) *  sins(gPuppyCam.yawTarget);
+            gPuppyCam[gCurrentMario].pos[0] += (gPlayer1Controller->rawStickY / 4) *  coss(gPuppyCam[gCurrentMario].yawTarget);
+            gPuppyCam[gCurrentMario].pos[1] += (gPlayer1Controller->rawStickY / 4) *  sins(gPuppyCam[gCurrentMario].pitchTarget);
+            gPuppyCam[gCurrentMario].pos[2] += (gPlayer1Controller->rawStickY / 4) *  sins(gPuppyCam[gCurrentMario].yawTarget);
         }
         if (gPlayer1Controller->buttonDown & Z_TRIG || gPlayer1Controller->buttonDown & L_TRIG) {
-            gPuppyCam.pos[1] -= 20;
+            gPuppyCam[gCurrentMario].pos[1] -= 20;
         }
         if (gPlayer1Controller->buttonDown & R_TRIG) {
-            gPuppyCam.pos[1] += 20;
+            gPuppyCam[gCurrentMario].pos[1] += 20;
         }
-        gPuppyCam.focus[0] = gPuppyCam.pos[0] + (100 * coss(gPuppyCam.yawTarget));
-        gPuppyCam.focus[1] = gPuppyCam.pos[1] + (100 * sins(gPuppyCam.pitchTarget));
-        gPuppyCam.focus[2] = gPuppyCam.pos[2] + (100 * sins(gPuppyCam.yawTarget));
+        gPuppyCam[gCurrentMario].focus[0] = gPuppyCam[gCurrentMario].pos[0] + (100 * coss(gPuppyCam[gCurrentMario].yawTarget));
+        gPuppyCam[gCurrentMario].focus[1] = gPuppyCam[gCurrentMario].pos[1] + (100 * sins(gPuppyCam[gCurrentMario].pitchTarget));
+        gPuppyCam[gCurrentMario].focus[2] = gPuppyCam[gCurrentMario].pos[2] + (100 * sins(gPuppyCam[gCurrentMario].yawTarget));
     } else {
-        if (gPuppyCam.debugFlags & PUPPYDEBUG_TRACK_MARIO) {
-            vec3_copy(gPuppyCam.focus, &gPuppyCam.targetObj->oPosVec);
+        if (gPuppyCam[gCurrentMario].debugFlags & PUPPYDEBUG_TRACK_MARIO) {
+            vec3_copy(gPuppyCam[gCurrentMario].focus, &gPuppyCam[gCurrentMario].targetObj->oPosVec);
         }
 
-        gPuppyCam.yawTarget   = atan2s(gPuppyCam.pos[2] - gPuppyCam.focus[2], gPuppyCam.pos[0] - gPuppyCam.focus[0]);
-        gPuppyCam.pitchTarget = atan2s(gPuppyCam.pos[1] - gPuppyCam.focus[1], 100);
+        gPuppyCam[gCurrentMario].yawTarget   = atan2s(gPuppyCam[gCurrentMario].pos[2] - gPuppyCam[gCurrentMario].focus[2], gPuppyCam[gCurrentMario].pos[0] - gPuppyCam[gCurrentMario].focus[0]);
+        gPuppyCam[gCurrentMario].pitchTarget = atan2s(gPuppyCam[gCurrentMario].pos[1] - gPuppyCam[gCurrentMario].focus[1], 100);
     }
 
-    gPuppyCam.yaw   = gPuppyCam.yawTarget;
-    gPuppyCam.pitch = gPuppyCam.pitchTarget;
+    gPuppyCam[gCurrentMario].yaw   = gPuppyCam[gCurrentMario].yawTarget;
+    gPuppyCam[gCurrentMario].pitch = gPuppyCam[gCurrentMario].pitchTarget;
 
-    if (gPlayer1Controller->buttonPressed & A_BUTTON && gPuppyCam.debugFlags & PUPPYDEBUG_LOCK_CONTROLS) {
-        vec3f_set(gMarioState->pos, gPuppyCam.pos[0], gPuppyCam.pos[1], gPuppyCam.pos[2]);
+    if (gPlayer1Controller->buttonPressed & A_BUTTON && gPuppyCam[gCurrentMario].debugFlags & PUPPYDEBUG_LOCK_CONTROLS) {
+        vec3f_set(gMarioState->pos, gPuppyCam[gCurrentMario].pos[0], gPuppyCam[gCurrentMario].pos[1], gPuppyCam[gCurrentMario].pos[2]);
     }
     if (gPlayer1Controller->buttonPressed & B_BUTTON) {
-        gPuppyCam.debugFlags ^= PUPPYDEBUG_LOCK_CONTROLS;
+        gPuppyCam[gCurrentMario].debugFlags ^= PUPPYDEBUG_LOCK_CONTROLS;
     }
 
-    if (gPlayer1Controller->buttonPressed & R_TRIG && !(gPuppyCam.debugFlags & PUPPYDEBUG_LOCK_CONTROLS)) {
-        gPuppyCam.debugFlags ^= PUPPYDEBUG_TRACK_MARIO;
+    if (gPlayer1Controller->buttonPressed & R_TRIG && !(gPuppyCam[gCurrentMario].debugFlags & PUPPYDEBUG_LOCK_CONTROLS)) {
+        gPuppyCam[gCurrentMario].debugFlags ^= PUPPYDEBUG_TRACK_MARIO;
     }
 }
 
 static void puppycam_view_panning(void) {
     s32 expectedPanX, expectedPanZ;
-    s32 height = gPuppyCam.targetObj->oPosY;
-    s32 panEx = (gPuppyCam.zoomTarget >= 1000) * 160; //Removes the basic panning when idling if the zoom level is at the closest.
+    s32 height = gPuppyCam[gCurrentMario].targetObj->oPosY;
+    s32 panEx = (gPuppyCam[gCurrentMario].zoomTarget >= 1000) * 160; //Removes the basic panning when idling if the zoom level is at the closest.
     f32 slideSpeed = 1;
 
-    f32 panMulti = CLAMP(gPuppyCam.zoom / (f32)gPuppyCam.zoomPoints[2], 0.f, 1.f);
-    if (gPuppyCam.options.inputType == 2) {
+    f32 panMulti = CLAMP(gPuppyCam[gCurrentMario].zoom / (f32)gPuppyCam[gCurrentMario].zoomPoints[2], 0.f, 1.f);
+    if (gPuppyCam[0].options.inputType == 2) {
         panMulti /= 2;
     }
-    if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_PANSHIFT && gMarioState->action != ACT_HOLDING_BOWSER && gMarioState->action != ACT_SLEEPING && gMarioState->action != ACT_START_SLEEPING) {
+    if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_PANSHIFT && gMarioState->action != ACT_HOLDING_BOWSER && gMarioState->action != ACT_SLEEPING && gMarioState->action != ACT_START_SLEEPING) {
         if (gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE) {
             slideSpeed = 10;
         }
         expectedPanX = LENSIN(panEx + (200 * (gMarioState->forwardVel / 320.f)), gMarioState->faceAngle[1]) * panMulti;
         expectedPanZ = LENCOS(panEx + (200 * (gMarioState->forwardVel / 320.f)), gMarioState->faceAngle[1]) * panMulti;
 
-        gPuppyCam.pan[0] = approach_f32_asymptotic(gPuppyCam.pan[0], expectedPanX, 0.02f*slideSpeed);
-        gPuppyCam.pan[2] = approach_f32_asymptotic(gPuppyCam.pan[2], expectedPanZ, 0.02f*slideSpeed);
+        gPuppyCam[gCurrentMario].pan[0] = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pan[0], expectedPanX, 0.02f*slideSpeed);
+        gPuppyCam[gCurrentMario].pan[2] = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pan[2], expectedPanZ, 0.02f*slideSpeed);
         if (gMarioState->vel[1] == 0.0f) {
-            f32 panFloor = CLAMP(find_floor_height((s16)(gPuppyCam.targetObj->oPosX+expectedPanX), (s16)(gPuppyCam.targetObj->oPosY + 200),
-            (s16)(gPuppyCam.targetObj->oPosZ+expectedPanZ)), gPuppyCam.targetObj->oPosY - 50,gPuppyCam.targetObj->oPosY + 50);
+            f32 panFloor = CLAMP(find_floor_height((s16)(gPuppyCam[gCurrentMario].targetObj->oPosX+expectedPanX), (s16)(gPuppyCam[gCurrentMario].targetObj->oPosY + 200),
+            (s16)(gPuppyCam[gCurrentMario].targetObj->oPosZ+expectedPanZ)), gPuppyCam[gCurrentMario].targetObj->oPosY - 50,gPuppyCam[gCurrentMario].targetObj->oPosY + 50);
             // If the floor is lower than 150 units below Mario, then ignore the Y value and tilt the camera instead.
-            if (panFloor <= gPuppyCam.targetObj->oPosY - 150) {
-                panFloor = gPuppyCam.targetObj->oPosY;
-                gPuppyCam.edgePitch = approach_s32(gPuppyCam.edgePitch, -0x2000, 0x80, 0x80);
+            if (panFloor <= gPuppyCam[gCurrentMario].targetObj->oPosY - 150) {
+                panFloor = gPuppyCam[gCurrentMario].targetObj->oPosY;
+                gPuppyCam[gCurrentMario].edgePitch = approach_s32(gPuppyCam[gCurrentMario].edgePitch, -0x2000, 0x80, 0x80);
             } else {
-                gPuppyCam.edgePitch = approach_s32(gPuppyCam.edgePitch, 0, 0x100, 0x100);
+                gPuppyCam[gCurrentMario].edgePitch = approach_s32(gPuppyCam[gCurrentMario].edgePitch, 0, 0x100, 0x100);
             }
-            gPuppyCam.pan[1] = approach_f32_asymptotic(gPuppyCam.pan[1], panFloor - height, 0.025f);
+            gPuppyCam[gCurrentMario].pan[1] = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pan[1], panFloor - height, 0.025f);
         } else {
-            gPuppyCam.pan[1] = approach_f32_asymptotic(gPuppyCam.pan[1], 0, 0.05f);
+            gPuppyCam[gCurrentMario].pan[1] = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pan[1], 0, 0.05f);
         }
     } else {
-        vec3_zero(gPuppyCam.pan);
+        vec3_zero(gPuppyCam[gCurrentMario].pan);
     }
 }
 
 void puppycam_terrain_angle(void) {
     f32 adjustSpeed;
-    s32 floor2 = find_floor_height(gPuppyCam.pos[0], gPuppyCam.pos[1]+100, gPuppyCam.pos[2]);
-    s32 ceil = 20000;//find_ceil(gPuppyCam.pos[0], gPuppyCam.pos[1]+100, gPuppyCam.pos[2]);
+    s32 floor2 = find_floor_height(gPuppyCam[gCurrentMario].pos[0], gPuppyCam[gCurrentMario].pos[1]+100, gPuppyCam[gCurrentMario].pos[2]);
+    s32 ceil = 20000;//find_ceil(gPuppyCam[gCurrentMario].pos[0], gPuppyCam[gCurrentMario].pos[1]+100, gPuppyCam[gCurrentMario].pos[2]);
     s32 farFromSurface;
     s16 floorPitch;
     s32 gotTheOkay = FALSE;
 
-    if (gMarioState->action & ACT_FLAG_SWIMMING || !(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_HEIGHT_HELPER)) {
-        gPuppyCam.intendedTerrainPitch = 0;
+    if (gMarioState->action & ACT_FLAG_SWIMMING || !(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_HEIGHT_HELPER)) {
+        gPuppyCam[gCurrentMario].intendedTerrainPitch = 0;
         adjustSpeed = 0.25f;
         farFromSurface = TRUE;
     } else {
-        adjustSpeed = CLAMP(MAX(gMarioState->forwardVel/400.0f, gPuppyCam.yawAcceleration/100.0f), 0.05f, 1.0f);
+        adjustSpeed = CLAMP(MAX(gMarioState->forwardVel/400.0f, gPuppyCam[gCurrentMario].yawAcceleration/100.0f), 0.05f, 1.0f);
 
-        f32 x = gPuppyCam.targetObj->oPosX - (10 * sins(gPuppyCam.yaw));
-        f32 z = gPuppyCam.targetObj->oPosZ - (10 * coss(gPuppyCam.yaw));
+        f32 x = gPuppyCam[gCurrentMario].targetObj->oPosX - (10 * sins(gPuppyCam[gCurrentMario].yaw));
+        f32 z = gPuppyCam[gCurrentMario].targetObj->oPosZ - (10 * coss(gPuppyCam[gCurrentMario].yaw));
 
-        f32 floorHeight = find_floor_height(x, gPuppyCam.targetObj->oPosY+100, z);
+        f32 floorHeight = find_floor_height(x, gPuppyCam[gCurrentMario].targetObj->oPosY+100, z);
         f32 diff = gMarioState->floorHeight - floorHeight;
 
         if (ABS(diff) > 50.f) {
-            gPuppyCam.intendedTerrainPitch = 0;
+            gPuppyCam[gCurrentMario].intendedTerrainPitch = 0;
         } else {
             floorPitch = -atan2s(30.0f, diff);
-            gPuppyCam.intendedTerrainPitch = approach_f32_asymptotic(gPuppyCam.intendedTerrainPitch, floorPitch, adjustSpeed);
+            gPuppyCam[gCurrentMario].intendedTerrainPitch = approach_f32_asymptotic(gPuppyCam[gCurrentMario].intendedTerrainPitch, floorPitch, adjustSpeed);
             gotTheOkay = TRUE;
         }
 
         // Ensures that the camera is below and above floors and ceilings. It ignores this rule for each if the camera's headed upwards anyway.
-        farFromSurface = ((gPuppyCam.pos[1] > floor2 + 50 || gPuppyCam.intendedTerrainPitch < gPuppyCam.terrainPitch) && (gPuppyCam.pos[1] < ceil - 50 || gPuppyCam.intendedTerrainPitch > gPuppyCam.terrainPitch));
+        farFromSurface = ((gPuppyCam[gCurrentMario].pos[1] > floor2 + 50 || gPuppyCam[gCurrentMario].intendedTerrainPitch < gPuppyCam[gCurrentMario].terrainPitch) && (gPuppyCam[gCurrentMario].pos[1] < ceil - 50 || gPuppyCam[gCurrentMario].intendedTerrainPitch > gPuppyCam[gCurrentMario].terrainPitch));
 
         // If the camera is too close to a vertical obstruction, it'll make the intended pitch much further away, making it swivel faster.
         if (!farFromSurface && gotTheOkay) {
-            gPuppyCam.intendedTerrainPitch = approach_f32_asymptotic(gPuppyCam.intendedTerrainPitch, floorPitch, adjustSpeed*3);
+            gPuppyCam[gCurrentMario].intendedTerrainPitch = approach_f32_asymptotic(gPuppyCam[gCurrentMario].intendedTerrainPitch, floorPitch, adjustSpeed*3);
         }
     }
 
     if (farFromSurface) {
-        gPuppyCam.terrainPitch = approach_f32_asymptotic(gPuppyCam.terrainPitch, gPuppyCam.intendedTerrainPitch, adjustSpeed);
+        gPuppyCam[gCurrentMario].terrainPitch = approach_f32_asymptotic(gPuppyCam[gCurrentMario].terrainPitch, gPuppyCam[gCurrentMario].intendedTerrainPitch, adjustSpeed);
     }
 }
 
@@ -927,7 +927,7 @@ static s32 puppycam_check_volume_bounds(struct sPuppyVolume *volume, s32 index) 
     }
     if (sPuppyVolumeStack[index]->shape == PUPPYVOLUME_SHAPE_BOX) {
         // Fetch the relative position. to the triggeree.
-        vec3_diff(rel, sPuppyVolumeStack[index]->pos, &gPuppyCam.targetObj->oPosVec);
+        vec3_diff(rel, sPuppyVolumeStack[index]->pos, &gPuppyCam[gCurrentMario].targetObj->oPosVec);
         // Use the dark, forbidden arts of trig to rotate the volume.
         pos[0] = rel[2] * sins(sPuppyVolumeStack[index]->rot) + rel[0] * coss(sPuppyVolumeStack[index]->rot);
         pos[1] = rel[2] * coss(sPuppyVolumeStack[index]->rot) - rel[0] * sins(sPuppyVolumeStack[index]->rot);
@@ -947,7 +947,7 @@ static s32 puppycam_check_volume_bounds(struct sPuppyVolume *volume, s32 index) 
         }
     } else if (sPuppyVolumeStack[index]->shape == PUPPYVOLUME_SHAPE_CYLINDER) {
         // s16 dir;
-        vec3_diff(rel, sPuppyVolumeStack[index]->pos, &gPuppyCam.targetObj->oPosVec);
+        vec3_diff(rel, sPuppyVolumeStack[index]->pos, &gPuppyCam[gCurrentMario].targetObj->oPosVec);
         f32 dist = (sqr(rel[0]) + sqr(rel[2]));
 #ifdef VISUAL_DEBUG
         Vec3f debugPos[2];
@@ -976,9 +976,9 @@ void puppycam_wall_angle(void) {
     if (!(gMarioState->action & ACT_WALL_KICK_AIR) || ((gMarioState->action & ACT_FLAG_AIR) && ABS(gMarioState->forwardVel) < 16.0f) || !(gMarioState->action & ACT_FLAG_AIR)) {
         return;
     }
-    cData.x = gPuppyCam.targetObj->oPosX;
-    cData.y = gPuppyCam.targetObj->oPosY;
-    cData.z = gPuppyCam.targetObj->oPosZ;
+    cData.x = gPuppyCam[gCurrentMario].targetObj->oPosX;
+    cData.y = gPuppyCam[gCurrentMario].targetObj->oPosY;
+    cData.z = gPuppyCam[gCurrentMario].targetObj->oPosZ;
     cData.radius = 150.0f;
     cData.offsetY = 0;
 
@@ -989,11 +989,11 @@ void puppycam_wall_angle(void) {
     }
     s16 wallYaw = atan2s(wall->normal.z, wall->normal.x) + 0x4000;
 
-    wallYaw -= gPuppyCam.yawTarget;
+    wallYaw -= gPuppyCam[gCurrentMario].yawTarget;
     if (wallYaw % 0x4000) {
         wallYaw += 0x4000 - wallYaw % 0x4000;
     }
-    gPuppyCam.yawTarget = approach_s32(gPuppyCam.yawTarget, wallYaw, 0x200, 0x200);
+    gPuppyCam[gCurrentMario].yawTarget = approach_s32(gPuppyCam[gCurrentMario].yawTarget, wallYaw, 0x200, 0x200);
 }
 
 void puppycam_projection_behaviours(void) {
@@ -1001,11 +1001,11 @@ void puppycam_projection_behaviours(void) {
     f32 turnMag = ABS(gPlayer1Controller->rawStickX / 80.0f);
 
     // This will only be executed if Mario's the target. If it's not, it'll reset the
-    if (gPuppyCam.targetObj == gMarioState->marioObj) {
-        if ((gPuppyCam.options.turnAggression > 0 && gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_TURN_HELPER && !(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) &&
-        gMarioState->vel[1] == 0.0f && !(gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) && gPuppyCam.options.inputType != 2) || gMarioState->action == ACT_SHOT_FROM_CANNON || gMarioState->action == ACT_FLYING) { // Holy hell this is getting spicy.
+    if (gPuppyCam[gCurrentMario].targetObj == gMarioState->marioObj) {
+        if ((gPuppyCam[0].options.turnAggression > 0 && gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_TURN_HELPER && !(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) &&
+        gMarioState->vel[1] == 0.0f && !(gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) && gPuppyCam[0].options.inputType != 2) || gMarioState->action == ACT_SHOT_FROM_CANNON || gMarioState->action == ACT_FLYING) { // Holy hell this is getting spicy.
             // With turn aggression enabled, or if Mario's sliding, adjust the camera view behind mario.
-            if (gPuppyCam.options.turnAggression > 0 || gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE || gMarioState->action == ACT_SHOT_FROM_CANNON || gMarioState->action == ACT_FLYING) {
+            if (gPuppyCam[0].options.turnAggression > 0 || gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE || gMarioState->action == ACT_SHOT_FROM_CANNON || gMarioState->action == ACT_FLYING) {
                 if (gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE) {
                     turnRate = 4; // If he's sliding, do it 4x as fast.
                 }
@@ -1014,71 +1014,71 @@ void puppycam_projection_behaviours(void) {
                 // The deal here, is if Mario's moving, or he's sliding and the camera's within 90 degrees behind him, it'll auto focus behind him, with an intensity based on the camera's centre speed.
                 // It also scales with forward velocity, so it's a gradual effect as he speeds up.
                 if ((ABS(gPlayer1Controller->rawStickX) > 20 && !(gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE)) || (gMarioState->action == ACT_SHOT_FROM_CANNON) ||
-                    (gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE && (s16)ABS(((gPuppyCam.yaw + 0x8000) % 0xFFFF - 0x8000) - ((gMarioState->faceAngle[1]) % 0xFFFF - 0x8000)) < 0x3000 ))
-                gPuppyCam.yawTarget = approach_angle(gPuppyCam.yawTarget, (gMarioState->faceAngle[1] + 0x8000), ((gPuppyCam.options.turnAggression * 10) * ABS(gMarioState->forwardVel / 32) * turnMag * turnRate));
+                    (gMarioState->action & ACT_FLAG_BUTT_OR_STOMACH_SLIDE && (s16)ABS(((gPuppyCam[gCurrentMario].yaw + 0x8000) % 0xFFFF - 0x8000) - ((gMarioState->faceAngle[1]) % 0xFFFF - 0x8000)) < 0x3000 ))
+                gPuppyCam[gCurrentMario].yawTarget = approach_angle(gPuppyCam[gCurrentMario].yawTarget, (gMarioState->faceAngle[1] + 0x8000), ((gPuppyCam[0].options.turnAggression * 10) * ABS(gMarioState->forwardVel / 32) * turnMag * turnRate));
             }
         } else { //If none of the above is true, it'll attempt to do this instead.
             // If the camera's in these modes, snap the yaw to prevent desync.
-            if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) {
-                if (gPuppyCam.yawTarget % 0x2000) {
-                    gPuppyCam.yawTarget += 0x2000 - gPuppyCam.yawTarget % 0x2000;
+            if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR) {
+                if (gPuppyCam[gCurrentMario].yawTarget % 0x2000) {
+                    gPuppyCam[gCurrentMario].yawTarget += 0x2000 - gPuppyCam[gCurrentMario].yawTarget % 0x2000;
                 }
             }
-            if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) {
-                if (gPuppyCam.yawTarget % 0x4000) {
-                    gPuppyCam.yawTarget += 0x4000 - gPuppyCam.yawTarget % 0x4000;
+            if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) {
+                if (gPuppyCam[gCurrentMario].yawTarget % 0x4000) {
+                    gPuppyCam[gCurrentMario].yawTarget += 0x4000 - gPuppyCam[gCurrentMario].yawTarget % 0x4000;
                 }
             }
         }
 
         //This is the base floor height when stood on the ground. It's used to set a baseline for where the camera sits while Mario remains a height from this point, so it keeps a consistent motion.
-        gPuppyCam.targetFloorHeight = CLAMP(find_floor_height(gPuppyCam.targetObj->oPosX, gPuppyCam.targetObj->oPosY, gPuppyCam.targetObj->oPosZ), gPuppyCam.targetObj->oPosY-350, gPuppyCam.targetObj->oPosY+300);
-        gPuppyCam.lastTargetFloorHeight = approach_f32_asymptotic(gPuppyCam.lastTargetFloorHeight , gPuppyCam.targetFloorHeight
+        gPuppyCam[gCurrentMario].targetFloorHeight = CLAMP(find_floor_height(gPuppyCam[gCurrentMario].targetObj->oPosX, gPuppyCam[gCurrentMario].targetObj->oPosY, gPuppyCam[gCurrentMario].targetObj->oPosZ), gPuppyCam[gCurrentMario].targetObj->oPosY-350, gPuppyCam[gCurrentMario].targetObj->oPosY+300);
+        gPuppyCam[gCurrentMario].lastTargetFloorHeight = approach_f32_asymptotic(gPuppyCam[gCurrentMario].lastTargetFloorHeight , gPuppyCam[gCurrentMario].targetFloorHeight
                                                                 , CLAMP((absf(gMarioState->vel[1]) - 17.f) / 200.f, 0, 0.1f)
-                                                                + CLAMP((absf(gPuppyCam.targetFloorHeight - gPuppyCam.lastTargetFloorHeight) - 30.f) / 300.f, 0, 0.1f));
+                                                                + CLAMP((absf(gPuppyCam[gCurrentMario].targetFloorHeight - gPuppyCam[gCurrentMario].lastTargetFloorHeight) - 30.f) / 300.f, 0, 0.1f));
 
         if (gMarioState->action == ACT_SLEEPING || gMarioState->action == ACT_START_SLEEPING) {
-            gPuppyCam.zoom = approach_f32_asymptotic(gPuppyCam.zoom,gPuppyCam.zoomPoints[0],0.01f);
+            gPuppyCam[gCurrentMario].zoom = approach_f32_asymptotic(gPuppyCam[gCurrentMario].zoom,gPuppyCam[gCurrentMario].zoomPoints[0],0.01f);
         } else if ((gMarioState->action & ACT_FLAG_SWIMMING_OR_FLYING && gMarioState->waterLevel-100 - gMarioState->pos[1] > 5) || gMarioState->action == ACT_FLYING) {
             // When moving underwater or flying, the camera will zoom in on Mayro.
-            gPuppyCam.zoom = approach_f32_asymptotic(gPuppyCam.zoom, MAX(gPuppyCam.zoomTarget/1.5f, gPuppyCam.zoomPoints[0]), 0.2f);
+            gPuppyCam[gCurrentMario].zoom = approach_f32_asymptotic(gPuppyCam[gCurrentMario].zoom, MAX(gPuppyCam[gCurrentMario].zoomTarget/1.5f, gPuppyCam[gCurrentMario].zoomPoints[0]), 0.2f);
         } else {
-            gPuppyCam.zoom = approach_f32_asymptotic(gPuppyCam.zoom,gPuppyCam.zoomTarget, 0.2f);
+            gPuppyCam[gCurrentMario].zoom = approach_f32_asymptotic(gPuppyCam[gCurrentMario].zoom,gPuppyCam[gCurrentMario].zoomTarget, 0.2f);
         }
         // Attempts at automatic adjustment that only apply when moving or jumping.
         if (gMarioState->action & ACT_FLAG_MOVING || gMarioState->action & ACT_FLAG_AIR || (gMarioState->action & ACT_FLAG_SWIMMING && !gMarioState->waterLevel-100 - gMarioState->pos[1] > 5 && gMarioState->forwardVel != 0.0f)) {
             // Clamp the height when moving. You can still look up and down to a reasonable degree but it readjusts itself the second you let go.
-            if (gPuppyCam.pitchTarget > 0x3800) gPuppyCam.pitchTarget = approach_f32_asymptotic(gPuppyCam.pitchTarget, 0x3800, 0.2f);
-            if (gPuppyCam.pitchTarget < 0x2000) gPuppyCam.pitchTarget = approach_f32_asymptotic(gPuppyCam.pitchTarget, 0x2000, 0.2f);
+            if (gPuppyCam[gCurrentMario].pitchTarget > 0x3800) gPuppyCam[gCurrentMario].pitchTarget = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pitchTarget, 0x3800, 0.2f);
+            if (gPuppyCam[gCurrentMario].pitchTarget < 0x2000) gPuppyCam[gCurrentMario].pitchTarget = approach_f32_asymptotic(gPuppyCam[gCurrentMario].pitchTarget, 0x2000, 0.2f);
         }
 
         // Applies a light outward zoom to the camera when moving. Sets it back to 0 when not moving.
         if (gMarioState->forwardVel > 0) {
-            gPuppyCam.moveZoom = approach_f32(gPuppyCam.moveZoom, 100.0f*(gMarioState->forwardVel/32.0f), gMarioState->forwardVel/10, gMarioState->forwardVel/10);
+            gPuppyCam[gCurrentMario].moveZoom = approach_f32(gPuppyCam[gCurrentMario].moveZoom, 100.0f*(gMarioState->forwardVel/32.0f), gMarioState->forwardVel/10, gMarioState->forwardVel/10);
         } else {
-            gPuppyCam.moveZoom = approach_f32(gPuppyCam.moveZoom, 0, 5, 5);
+            gPuppyCam[gCurrentMario].moveZoom = approach_f32(gPuppyCam[gCurrentMario].moveZoom, 0, 5, 5);
         }
 
         // Zooms the camera in further when underwater.
-        if (gPuppyCam.pitch > 0x38C0 && ABS(gPuppyCam.swimPitch) < 100) {
-            gPuppyCam.zoom = approach_f32_asymptotic((f32)gPuppyCam.zoom, 250.0f, CLAMP((f32)((gPuppyCam.pitch - 0x38C0) / 3072.0f), 0.0f, 1.0f));
+        if (gPuppyCam[gCurrentMario].pitch > 0x38C0 && ABS(gPuppyCam[gCurrentMario].swimPitch) < 100) {
+            gPuppyCam[gCurrentMario].zoom = approach_f32_asymptotic((f32)gPuppyCam[gCurrentMario].zoom, 250.0f, CLAMP((f32)((gPuppyCam[gCurrentMario].pitch - 0x38C0) / 3072.0f), 0.0f, 1.0f));
         }
 
         if (!(gMarioState->action & ACT_FLAG_SWIMMING_OR_FLYING)) {
-            gPuppyCam.floorY[0] = softClamp(gPuppyCam.targetObj->oPosY - gPuppyCam.lastTargetFloorHeight, -180, 300);
-            gPuppyCam.floorY[1] = softClamp(gPuppyCam.targetObj->oPosY - gPuppyCam.lastTargetFloorHeight, -180, 350);
-            gPuppyCam.swimPitch = approach_f32_asymptotic(gPuppyCam.swimPitch,0,0.2f);
+            gPuppyCam[gCurrentMario].floorY[0] = softClamp(gPuppyCam[gCurrentMario].targetObj->oPosY - gPuppyCam[gCurrentMario].lastTargetFloorHeight, -180, 300);
+            gPuppyCam[gCurrentMario].floorY[1] = softClamp(gPuppyCam[gCurrentMario].targetObj->oPosY - gPuppyCam[gCurrentMario].lastTargetFloorHeight, -180, 350);
+            gPuppyCam[gCurrentMario].swimPitch = approach_f32_asymptotic(gPuppyCam[gCurrentMario].swimPitch,0,0.2f);
         } else {
-            gPuppyCam.floorY[0] = 0;
-            gPuppyCam.floorY[1] = 0;
-            gPuppyCam.targetFloorHeight = gPuppyCam.targetObj->oPosY;
-            gPuppyCam.lastTargetFloorHeight = gPuppyCam.targetObj->oPosY;
+            gPuppyCam[gCurrentMario].floorY[0] = 0;
+            gPuppyCam[gCurrentMario].floorY[1] = 0;
+            gPuppyCam[gCurrentMario].targetFloorHeight = gPuppyCam[gCurrentMario].targetObj->oPosY;
+            gPuppyCam[gCurrentMario].lastTargetFloorHeight = gPuppyCam[gCurrentMario].targetObj->oPosY;
 
-            gPuppyCam.yawTarget = approach_angle(gPuppyCam.yawTarget, (gMarioState->faceAngle[1] + 0x8000), (1000 * (gMarioState->forwardVel / 32)));
-            if ((gMarioState->waterLevel - 100 - gMarioState->pos[1] > 5 && gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_PITCH_ROTATION) || gMarioState->action == ACT_FLYING || gMarioState->action == ACT_SHOT_FROM_CANNON) {
-                gPuppyCam.swimPitch = approach_f32_asymptotic(gPuppyCam.swimPitch,gMarioState->faceAngle[0] / 10, 0.05f);
+            gPuppyCam[gCurrentMario].yawTarget = approach_angle(gPuppyCam[gCurrentMario].yawTarget, (gMarioState->faceAngle[1] + 0x8000), (1000 * (gMarioState->forwardVel / 32)));
+            if ((gMarioState->waterLevel - 100 - gMarioState->pos[1] > 5 && gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_PITCH_ROTATION) || gMarioState->action == ACT_FLYING || gMarioState->action == ACT_SHOT_FROM_CANNON) {
+                gPuppyCam[gCurrentMario].swimPitch = approach_f32_asymptotic(gPuppyCam[gCurrentMario].swimPitch,gMarioState->faceAngle[0] / 10, 0.05f);
             } else {
-                gPuppyCam.swimPitch = approach_f32_asymptotic(gPuppyCam.swimPitch, 0, 0.2f);
+                gPuppyCam[gCurrentMario].swimPitch = approach_f32_asymptotic(gPuppyCam[gCurrentMario].swimPitch, 0, 0.2f);
             }
         }
 
@@ -1098,7 +1098,7 @@ void puppycam_projection_behaviours(void) {
     if (gMarioState->floor != NULL && gMarioState->floor->type == SURFACE_LOOK_UP_WARP
         && save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 10) {
  #endif // !UNLOCK_ALL
-        if (gPuppyCam.pitchTarget >= 0x7000) {
+        if (gPuppyCam[gCurrentMario].pitchTarget >= 0x7000) {
             level_trigger_warp(gMarioState, WARP_OP_LOOK_UP);
         }
     }
@@ -1117,12 +1117,12 @@ void puppycam_shake(UNUSED s16 x, UNUSED s16 y, UNUSED s16 z) {
 // The centrepiece behind the input side of PuppyCam. The C buttons branch off.
 static void puppycam_input_core(void) {
     puppycam_analogue_stick();
-    gPuppyCam.moveFlagAdd = 0;
+    gPuppyCam[gCurrentMario].moveFlagAdd = 0;
 
     // Decide which input for left and right C buttons to use based on behaviour type.
-    if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_NORMAL || gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_FREE) {
+    if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_NORMAL || gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_FREE) {
         puppycam_input_hold();
-    } else if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR || gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) {
+    } else if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_8DIR || gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_INPUT_4DIR) {
         puppycam_input_press();
     }
 }
@@ -1131,9 +1131,9 @@ static void puppycam_input_core(void) {
 static void puppycam_projection(void) {
     Vec3s targetPos, targetPos2, targetPos3;
     s16 pitchTotal;
-    s32 panD = (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_PANSHIFT) / 8192;
+    s32 panD = (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_PANSHIFT) / 8192;
 
-    if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_FREE) {
+    if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_FREE) {
         puppycam_reset_values();
         puppycam_debug_view();
         return;
@@ -1142,39 +1142,39 @@ static void puppycam_projection(void) {
     // Extra behaviours that get tacked onto the projection. Will be completely ignored if there is no target object.
     puppycam_projection_behaviours();
     // These are what the base rotations aspire to be.
-    gPuppyCam.pitch       = CLAMP(gPuppyCam.pitch,       0x1000, 0x7000);
-    gPuppyCam.pitchTarget = CLAMP(gPuppyCam.pitchTarget, 0x1000, 0x7000);
+    gPuppyCam[gCurrentMario].pitch       = CLAMP(gPuppyCam[gCurrentMario].pitch,       0x1000, 0x7000);
+    gPuppyCam[gCurrentMario].pitchTarget = CLAMP(gPuppyCam[gCurrentMario].pitchTarget, 0x1000, 0x7000);
     // These are the base rotations going to be used.
-    gPuppyCam.yaw   = gPuppyCam.yawTarget   - approach_f32_asymptotic((s16)(gPuppyCam.yawTarget   - gPuppyCam.yaw  ), 0, 0.3335f);
-    gPuppyCam.pitch = gPuppyCam.pitchTarget - approach_f32_asymptotic((s16)(gPuppyCam.pitchTarget - gPuppyCam.pitch), 0, 0.3335f);
+    gPuppyCam[gCurrentMario].yaw   = gPuppyCam[gCurrentMario].yawTarget   - approach_f32_asymptotic((s16)(gPuppyCam[gCurrentMario].yawTarget   - gPuppyCam[gCurrentMario].yaw  ), 0, 0.3335f);
+    gPuppyCam[gCurrentMario].pitch = gPuppyCam[gCurrentMario].pitchTarget - approach_f32_asymptotic((s16)(gPuppyCam[gCurrentMario].pitchTarget - gPuppyCam[gCurrentMario].pitch), 0, 0.3335f);
     // This adds the pitch effect when underwater, which is capped so it doesn't get out of control. If you're not swimming, swimpitch is 0, so it's normal.
-    pitchTotal = CLAMP(gPuppyCam.pitch+(gPuppyCam.swimPitch*10)+gPuppyCam.edgePitch + gPuppyCam.terrainPitch, 800, 0x7800);
+    pitchTotal = CLAMP(gPuppyCam[gCurrentMario].pitch+(gPuppyCam[gCurrentMario].swimPitch*10)+gPuppyCam[gCurrentMario].edgePitch + gPuppyCam[gCurrentMario].terrainPitch, 800, 0x7800);
 
-    if (gPuppyCam.targetObj) {
-        vec3s_set(targetPos, gPuppyCam.targetObj->oPosX, gPuppyCam.targetObj->oPosY, gPuppyCam.targetObj->oPosZ);
+    if (gPuppyCam[gCurrentMario].targetObj) {
+        vec3s_set(targetPos, gPuppyCam[gCurrentMario].targetObj->oPosX, gPuppyCam[gCurrentMario].targetObj->oPosY, gPuppyCam[gCurrentMario].targetObj->oPosZ);
         vec3s_copy(targetPos3, targetPos);
-        if (gPuppyCam.targetObj2) {
-            vec3s_set(targetPos2, gPuppyCam.targetObj2->oPosX, gPuppyCam.targetObj2->oPosY, gPuppyCam.targetObj2->oPosZ);
+        if (gPuppyCam[gCurrentMario].targetObj2) {
+            vec3s_set(targetPos2, gPuppyCam[gCurrentMario].targetObj2->oPosX, gPuppyCam[gCurrentMario].targetObj2->oPosY, gPuppyCam[gCurrentMario].targetObj2->oPosZ);
             targetPos3[0] = (s16)approach_f32_asymptotic(targetPos[0], targetPos2[0], 0.5f);
             targetPos3[1] = (s16)approach_f32_asymptotic(targetPos[1], targetPos2[1], 0.5f);
             targetPos3[2] = (s16)approach_f32_asymptotic(targetPos[2], targetPos2[2], 0.5f);
             Vec3s d;
             vec3_diff(d, targetPos, targetPos2);
-            gPuppyCam.targetDist[0] = approach_f32_asymptotic(gPuppyCam.targetDist[0], (ABS(LENCOS(sqrtf(sqr(d[0]) + sqr(d[2])),
-                            (s16)ABS(((gPuppyCam.yaw + 0x8000) % 0xFFFF - 0x8000) - (atan2s(d[2], d[0])) % 0xFFFF - 0x8000) + 0x4000))), 0.2f);
+            gPuppyCam[gCurrentMario].targetDist[0] = approach_f32_asymptotic(gPuppyCam[gCurrentMario].targetDist[0], (ABS(LENCOS(sqrtf(sqr(d[0]) + sqr(d[2])),
+                            (s16)ABS(((gPuppyCam[gCurrentMario].yaw + 0x8000) % 0xFFFF - 0x8000) - (atan2s(d[2], d[0])) % 0xFFFF - 0x8000) + 0x4000))), 0.2f);
         } else {
-            gPuppyCam.targetDist[0] = approach_f32_asymptotic(gPuppyCam.targetDist[0], 0, 0.2f);
+            gPuppyCam[gCurrentMario].targetDist[0] = approach_f32_asymptotic(gPuppyCam[gCurrentMario].targetDist[0], 0, 0.2f);
         }
 
-        gPuppyCam.targetDist[1] = gPuppyCam.targetDist[0] + gPuppyCam.zoom+gPuppyCam.moveZoom;
+        gPuppyCam[gCurrentMario].targetDist[1] = gPuppyCam[gCurrentMario].targetDist[0] + gPuppyCam[gCurrentMario].zoom+gPuppyCam[gCurrentMario].moveZoom;
 
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_X_MOVEMENT) gPuppyCam.focus[0] = targetPos3[0] + gPuppyCam.shake[0] + (gPuppyCam.pan[0] * gPuppyCam.targetDist[1] / gPuppyCam.zoomPoints[2]) * panD;
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_Y_MOVEMENT) gPuppyCam.focus[1] = targetPos3[1] + gPuppyCam.shake[1] + (gPuppyCam.pan[1] * gPuppyCam.targetDist[1] / gPuppyCam.zoomPoints[2]) + gPuppyCam.povHeight - gPuppyCam.floorY[0] + (gPuppyCam.swimPitch / 10);
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_Z_MOVEMENT) gPuppyCam.focus[2] = targetPos3[2] + gPuppyCam.shake[2] + (gPuppyCam.pan[2] * gPuppyCam.targetDist[1] / gPuppyCam.zoomPoints[2]) * panD;
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_X_MOVEMENT) gPuppyCam[gCurrentMario].focus[0] = targetPos3[0] + gPuppyCam[gCurrentMario].shake[0] + (gPuppyCam[gCurrentMario].pan[0] * gPuppyCam[gCurrentMario].targetDist[1] / gPuppyCam[gCurrentMario].zoomPoints[2]) * panD;
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_Y_MOVEMENT) gPuppyCam[gCurrentMario].focus[1] = targetPos3[1] + gPuppyCam[gCurrentMario].shake[1] + (gPuppyCam[gCurrentMario].pan[1] * gPuppyCam[gCurrentMario].targetDist[1] / gPuppyCam[gCurrentMario].zoomPoints[2]) + gPuppyCam[gCurrentMario].povHeight - gPuppyCam[gCurrentMario].floorY[0] + (gPuppyCam[gCurrentMario].swimPitch / 10);
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_Z_MOVEMENT) gPuppyCam[gCurrentMario].focus[2] = targetPos3[2] + gPuppyCam[gCurrentMario].shake[2] + (gPuppyCam[gCurrentMario].pan[2] * gPuppyCam[gCurrentMario].targetDist[1] / gPuppyCam[gCurrentMario].zoomPoints[2]) * panD;
 
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_X_MOVEMENT) gPuppyCam.pos[0] = gPuppyCam.targetObj->oPosX + LENSIN(LENSIN(gPuppyCam.targetDist[1], pitchTotal), gPuppyCam.yaw) + gPuppyCam.shake[0];
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_Y_MOVEMENT) gPuppyCam.pos[1] = gPuppyCam.targetObj->oPosY + gPuppyCam.povHeight + LENCOS(gPuppyCam.targetDist[1], pitchTotal) + gPuppyCam.shake[1] - gPuppyCam.floorY[1];
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_Z_MOVEMENT) gPuppyCam.pos[2] = gPuppyCam.targetObj->oPosZ + LENCOS(LENSIN(gPuppyCam.targetDist[1], pitchTotal), gPuppyCam.yaw) + gPuppyCam.shake[2];
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_X_MOVEMENT) gPuppyCam[gCurrentMario].pos[0] = gPuppyCam[gCurrentMario].targetObj->oPosX + LENSIN(LENSIN(gPuppyCam[gCurrentMario].targetDist[1], pitchTotal), gPuppyCam[gCurrentMario].yaw) + gPuppyCam[gCurrentMario].shake[0];
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_Y_MOVEMENT) gPuppyCam[gCurrentMario].pos[1] = gPuppyCam[gCurrentMario].targetObj->oPosY + gPuppyCam[gCurrentMario].povHeight + LENCOS(gPuppyCam[gCurrentMario].targetDist[1], pitchTotal) + gPuppyCam[gCurrentMario].shake[1] - gPuppyCam[gCurrentMario].floorY[1];
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_Z_MOVEMENT) gPuppyCam[gCurrentMario].pos[2] = gPuppyCam[gCurrentMario].targetObj->oPosZ + LENCOS(LENSIN(gPuppyCam[gCurrentMario].targetDist[1], pitchTotal), gPuppyCam[gCurrentMario].yaw) + gPuppyCam[gCurrentMario].shake[2];
     }
 
 }
@@ -1184,50 +1184,50 @@ static void puppycam_script(void) {
     u16 i = 0;
     struct sPuppyVolume volume;
 
-    if (gPuppyVolumeCount == 0 || !gPuppyCam.targetObj) {
+    if (gPuppyVolumeCount == 0 || !gPuppyCam[gCurrentMario].targetObj) {
         return;
     }
     for (i = 0; i < gPuppyVolumeCount; i++) {
         if (puppycam_check_volume_bounds(&volume, i)) {
             // First applies pos and focus, for the most basic of volumes.
             if (volume.angles != NULL) {
-                if (volume.angles->pos[0]   != PUPPY_NULL) gPuppyCam.pos[0]   = volume.angles->pos[0];
-                if (volume.angles->pos[1]   != PUPPY_NULL) gPuppyCam.pos[1]   = volume.angles->pos[1];
-                if (volume.angles->pos[2]   != PUPPY_NULL) gPuppyCam.pos[2]   = volume.angles->pos[2];
+                if (volume.angles->pos[0]   != PUPPY_NULL) gPuppyCam[gCurrentMario].pos[0]   = volume.angles->pos[0];
+                if (volume.angles->pos[1]   != PUPPY_NULL) gPuppyCam[gCurrentMario].pos[1]   = volume.angles->pos[1];
+                if (volume.angles->pos[2]   != PUPPY_NULL) gPuppyCam[gCurrentMario].pos[2]   = volume.angles->pos[2];
 
-                if (volume.angles->focus[0] != PUPPY_NULL) gPuppyCam.focus[0] = volume.angles->focus[0];
-                if (volume.angles->focus[1] != PUPPY_NULL) gPuppyCam.focus[1] = volume.angles->focus[1];
-                if (volume.angles->focus[2] != PUPPY_NULL) gPuppyCam.focus[2] = volume.angles->focus[2];
+                if (volume.angles->focus[0] != PUPPY_NULL) gPuppyCam[gCurrentMario].focus[0] = volume.angles->focus[0];
+                if (volume.angles->focus[1] != PUPPY_NULL) gPuppyCam[gCurrentMario].focus[1] = volume.angles->focus[1];
+                if (volume.angles->focus[2] != PUPPY_NULL) gPuppyCam[gCurrentMario].focus[2] = volume.angles->focus[2];
 
                 if (volume.angles->yaw != PUPPY_NULL) {
-                    gPuppyCam.yawTarget = volume.angles->yaw;
-                    gPuppyCam.yaw       = volume.angles->yaw;
+                    gPuppyCam[gCurrentMario].yawTarget = volume.angles->yaw;
+                    gPuppyCam[gCurrentMario].yaw       = volume.angles->yaw;
 
-                    gPuppyCam.flags &= ~PUPPYCAM_BEHAVIOUR_YAW_ROTATION;
+                    gPuppyCam[gCurrentMario].flags &= ~PUPPYCAM_BEHAVIOUR_YAW_ROTATION;
                 }
 
                 if (volume.angles->pitch != PUPPY_NULL) {
-                    gPuppyCam.pitchTarget = volume.angles->pitch;
-                    gPuppyCam.pitch       = volume.angles->pitch;
+                    gPuppyCam[gCurrentMario].pitchTarget = volume.angles->pitch;
+                    gPuppyCam[gCurrentMario].pitch       = volume.angles->pitch;
 
-                    gPuppyCam.flags &= ~PUPPYCAM_BEHAVIOUR_PITCH_ROTATION;
+                    gPuppyCam[gCurrentMario].flags &= ~PUPPYCAM_BEHAVIOUR_PITCH_ROTATION;
                 }
 
                 if (volume.angles->zoom != PUPPY_NULL) {
-                    gPuppyCam.zoomTarget = volume.angles->zoom;
-                    gPuppyCam.zoom       = gPuppyCam.zoomTarget;
+                    gPuppyCam[gCurrentMario].zoomTarget = volume.angles->zoom;
+                    gPuppyCam[gCurrentMario].zoom       = gPuppyCam[gCurrentMario].zoomTarget;
 
-                    gPuppyCam.flags &= ~PUPPYCAM_BEHAVIOUR_ZOOM_CHANGE;
+                    gPuppyCam[gCurrentMario].flags &= ~PUPPYCAM_BEHAVIOUR_ZOOM_CHANGE;
                 }
             }
 
             // Adds and removes behaviour flags, as set.
-            if (volume.flagsRemove) gPuppyCam.flags &= ~volume.flagsRemove;
-            if (volume.flagsAdd   ) gPuppyCam.flags |=  volume.flagsAdd;
+            if (volume.flagsRemove) gPuppyCam[gCurrentMario].flags &= ~volume.flagsRemove;
+            if (volume.flagsAdd   ) gPuppyCam[gCurrentMario].flags |=  volume.flagsAdd;
             if (volume.flagPersistance == PUPPYCAM_BEHAVIOUR_PERMANENT) {
                 // Adds and removes behaviour flags, as set.
-                if (volume.flagsRemove) gPuppyCam.intendedFlags &= ~volume.flagsRemove;
-                if (volume.flagsAdd   ) gPuppyCam.intendedFlags |=  volume.flagsAdd;
+                if (volume.flagsRemove) gPuppyCam[gCurrentMario].intendedFlags &= ~volume.flagsRemove;
+                if (volume.flagsAdd   ) gPuppyCam[gCurrentMario].intendedFlags |=  volume.flagsAdd;
             }
 
             // Last and probably least, check if there's a function attached, and call it, if so.
@@ -1245,20 +1245,20 @@ static void puppycam_collision(void) {
     Vec3f camdir[2];
     Vec3f hitpos[2];
     Vec3f target[2];
-    s16 pitchTotal = CLAMP(gPuppyCam.pitch+(gPuppyCam.swimPitch * 10) + gPuppyCam.edgePitch + gPuppyCam.terrainPitch, 800, 0x7800);
+    s16 pitchTotal = CLAMP(gPuppyCam[gCurrentMario].pitch+(gPuppyCam[gCurrentMario].swimPitch * 10) + gPuppyCam[gCurrentMario].edgePitch + gPuppyCam[gCurrentMario].terrainPitch, 800, 0x7800);
     s32 dist[2];
 
-    if (gPuppyCam.targetObj == NULL) {
+    if (gPuppyCam[gCurrentMario].targetObj == NULL) {
         return;
     }
     // The ray, starting from the top
-    vec3_copy_y_off(target[0], &gPuppyCam.targetObj->oPosVec, (gPuppyCam.povHeight) - CLAMP(gPuppyCam.targetObj->oPosY - gPuppyCam.targetFloorHeight, 0, 300));
+    vec3_copy_y_off(target[0], &gPuppyCam[gCurrentMario].targetObj->oPosVec, (gPuppyCam[gCurrentMario].povHeight) - CLAMP(gPuppyCam[gCurrentMario].targetObj->oPosY - gPuppyCam[gCurrentMario].targetFloorHeight, 0, 300));
     // The ray, starting from the bottom
-    vec3_copy_y_off(target[1], &gPuppyCam.targetObj->oPosVec, (gPuppyCam.povHeight * 0.4f));
+    vec3_copy_y_off(target[1], &gPuppyCam[gCurrentMario].targetObj->oPosVec, (gPuppyCam[gCurrentMario].povHeight * 0.4f));
 
-    camdir[0][0] = LENSIN(LENSIN(gPuppyCam.zoomTarget, pitchTotal), gPuppyCam.yaw) + gPuppyCam.shake[0];
-    camdir[0][1] = LENCOS(gPuppyCam.zoomTarget, pitchTotal) + gPuppyCam.shake[1];
-    camdir[0][2] = LENCOS(LENSIN(gPuppyCam.zoomTarget, pitchTotal), gPuppyCam.yaw) + gPuppyCam.shake[2];
+    camdir[0][0] = LENSIN(LENSIN(gPuppyCam[gCurrentMario].zoomTarget, pitchTotal), gPuppyCam[gCurrentMario].yaw) + gPuppyCam[gCurrentMario].shake[0];
+    camdir[0][1] = LENCOS(gPuppyCam[gCurrentMario].zoomTarget, pitchTotal) + gPuppyCam[gCurrentMario].shake[1];
+    camdir[0][2] = LENCOS(LENSIN(gPuppyCam[gCurrentMario].zoomTarget, pitchTotal), gPuppyCam[gCurrentMario].yaw) + gPuppyCam[gCurrentMario].shake[2];
 
     vec3_copy(camdir[1], camdir[0]);
 
@@ -1269,50 +1269,50 @@ static void puppycam_collision(void) {
     dist[0] = ((target[0][0] - hitpos[0][0]) * (target[0][0] - hitpos[0][0]) + (target[0][1] - hitpos[0][1]) * (target[0][1] - hitpos[0][1]) + (target[0][2] - hitpos[0][2]) * (target[0][2] - hitpos[0][2]));
     dist[1] = ((target[1][0] - hitpos[1][0]) * (target[1][0] - hitpos[1][0]) + (target[1][1] - hitpos[1][1]) * (target[1][1] - hitpos[1][1]) + (target[1][2] - hitpos[1][2]) * (target[1][2] - hitpos[1][2]));
 
-    gPuppyCam.collisionDistance = gPuppyCam.zoomTarget;
+    gPuppyCam[gCurrentMario].collisionDistance = gPuppyCam[gCurrentMario].zoomTarget;
 
     if (surf[0] && surf[1]) {
-        gPuppyCam.collisionDistance = sqrtf(MAX(dist[0], dist[1]));
-        if (gPuppyCam.zoom > gPuppyCam.collisionDistance) {
-            gPuppyCam.zoom = MIN(gPuppyCam.collisionDistance, gPuppyCam.zoomTarget);
-            if (gPuppyCam.zoom - gPuppyCam.zoomTarget < 5) {
+        gPuppyCam[gCurrentMario].collisionDistance = sqrtf(MAX(dist[0], dist[1]));
+        if (gPuppyCam[gCurrentMario].zoom > gPuppyCam[gCurrentMario].collisionDistance) {
+            gPuppyCam[gCurrentMario].zoom = MIN(gPuppyCam[gCurrentMario].collisionDistance, gPuppyCam[gCurrentMario].zoomTarget);
+            if (gPuppyCam[gCurrentMario].zoom - gPuppyCam[gCurrentMario].zoomTarget < 5) {
                 if (dist[0] >= dist[1]) {
-                    vec3_copy(gPuppyCam.pos, hitpos[0]);
+                    vec3_copy(gPuppyCam[gCurrentMario].pos, hitpos[0]);
                 } else {
-                    vec3_copy_y_off(gPuppyCam.pos, hitpos[1], (gPuppyCam.povHeight * 0.6f));
+                    vec3_copy_y_off(gPuppyCam[gCurrentMario].pos, hitpos[1], (gPuppyCam[gCurrentMario].povHeight * 0.6f));
                 }
             }
         }
     }
     #define START_DIST 500
     #define END_DIST   250
-    gPuppyCam.opacity = CLAMP((f32)(((gPuppyCam.zoom - END_DIST) / 255.0f) * (START_DIST - END_DIST)), 0, 255);
+    gPuppyCam[gCurrentMario].opacity = CLAMP((f32)(((gPuppyCam[gCurrentMario].zoom - END_DIST) / 255.0f) * (START_DIST - END_DIST)), 0, 255);
 }
 
 extern Vec3f sOldPosition;
 extern Vec3f sOldFocus;
-extern struct PlayerGeometry sMarioGeometry;
+extern struct PlayerGeometry sMarioGeometry[NUM_PLAYERS];
 
 // Applies the PuppyCam values to the actual game's camera, giving the final product.
 static void puppycam_apply(void) {
-    vec3f_set(gLakituState[gCurrentMario].pos,       (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
-    vec3f_set(gLakituState[gCurrentMario].goalPos,   (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
-    vec3f_set(gLakituState[gCurrentMario].curPos,    (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
-    vec3f_set(gCamera->pos,           (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
-    vec3f_set(sOldPosition,           (f32)gPuppyCam.pos[0], (f32)gPuppyCam.pos[1], (f32)gPuppyCam.pos[2]);
+    vec3f_set(gLakituState[gCurrentMario].pos,       (f32)gPuppyCam[gCurrentMario].pos[0], (f32)gPuppyCam[gCurrentMario].pos[1], (f32)gPuppyCam[gCurrentMario].pos[2]);
+    vec3f_set(gLakituState[gCurrentMario].goalPos,   (f32)gPuppyCam[gCurrentMario].pos[0], (f32)gPuppyCam[gCurrentMario].pos[1], (f32)gPuppyCam[gCurrentMario].pos[2]);
+    vec3f_set(gLakituState[gCurrentMario].curPos,    (f32)gPuppyCam[gCurrentMario].pos[0], (f32)gPuppyCam[gCurrentMario].pos[1], (f32)gPuppyCam[gCurrentMario].pos[2]);
+    vec3f_set(gCamera->pos,           (f32)gPuppyCam[gCurrentMario].pos[0], (f32)gPuppyCam[gCurrentMario].pos[1], (f32)gPuppyCam[gCurrentMario].pos[2]);
+    vec3f_set(sOldPosition,           (f32)gPuppyCam[gCurrentMario].pos[0], (f32)gPuppyCam[gCurrentMario].pos[1], (f32)gPuppyCam[gCurrentMario].pos[2]);
 
-    vec3f_set(gLakituState[gCurrentMario].focus,     (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
-    vec3f_set(gLakituState[gCurrentMario].goalFocus, (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
-    vec3f_set(gLakituState[gCurrentMario].curFocus,  (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
-    vec3f_set(gCamera->focus,         (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
-    vec3f_set(sOldFocus,              (f32)gPuppyCam.focus[0], (f32)gPuppyCam.focus[1], (f32)gPuppyCam.focus[2]);
+    vec3f_set(gLakituState[gCurrentMario].focus,     (f32)gPuppyCam[gCurrentMario].focus[0], (f32)gPuppyCam[gCurrentMario].focus[1], (f32)gPuppyCam[gCurrentMario].focus[2]);
+    vec3f_set(gLakituState[gCurrentMario].goalFocus, (f32)gPuppyCam[gCurrentMario].focus[0], (f32)gPuppyCam[gCurrentMario].focus[1], (f32)gPuppyCam[gCurrentMario].focus[2]);
+    vec3f_set(gLakituState[gCurrentMario].curFocus,  (f32)gPuppyCam[gCurrentMario].focus[0], (f32)gPuppyCam[gCurrentMario].focus[1], (f32)gPuppyCam[gCurrentMario].focus[2]);
+    vec3f_set(gCamera->focus,         (f32)gPuppyCam[gCurrentMario].focus[0], (f32)gPuppyCam[gCurrentMario].focus[1], (f32)gPuppyCam[gCurrentMario].focus[2]);
+    vec3f_set(sOldFocus,              (f32)gPuppyCam[gCurrentMario].focus[0], (f32)gPuppyCam[gCurrentMario].focus[1], (f32)gPuppyCam[gCurrentMario].focus[2]);
 
-    gCamera->yaw         = gPuppyCam.yaw;
-    gCamera->nextYaw     = gPuppyCam.yaw;
+    gCamera->yaw         = gPuppyCam[gCurrentMario].yaw;
+    gCamera->nextYaw     = gPuppyCam[gCurrentMario].yaw;
 
-    gLakituState[gCurrentMario].yaw     = gPuppyCam.yaw;
-    gLakituState[gCurrentMario].nextYaw = gPuppyCam.yaw;
-    gLakituState[gCurrentMario].oldYaw  = gPuppyCam.yaw;
+    gLakituState[gCurrentMario].yaw     = gPuppyCam[gCurrentMario].yaw;
+    gLakituState[gCurrentMario].nextYaw = gPuppyCam[gCurrentMario].yaw;
+    gLakituState[gCurrentMario].oldYaw  = gPuppyCam[gCurrentMario].yaw;
 
     gLakituState[gCurrentMario].mode    = gCamera->mode;
     gLakituState[gCurrentMario].defMode = gCamera->defMode;
@@ -1320,10 +1320,10 @@ static void puppycam_apply(void) {
 
     // Commented out simply because vanilla SM64 has this always set sometimes, and relies on certain camera modes to apply secondary foci.
     // Uncomment to have fun with certain angles.
-    /*if (gSecondCameraFocus != NULL) {
-        gPuppyCam.targetObj2 = gSecondCameraFocus;
+    /*if (gSecondCameraFocus[gCurrentMario] != NULL) {
+        gPuppyCam[gCurrentMario].targetObj2 = gSecondCameraFocus[gCurrentMario];
     } else {
-        gPuppyCam.targetObj2 = NULL;
+        gPuppyCam[gCurrentMario].targetObj2 = NULL;
     }*/
 
     if (gMarioState->floor != NULL) {
@@ -1341,19 +1341,19 @@ static void puppycam_apply(void) {
 
 // The basic loop sequence, which is called outside.
 void puppycam_loop(void) {
-    if (!gPuppyCam.cutscene && sDelayedWarpOp == 0) {
+    if (!gPuppyCam[gCurrentMario].cutscene && sDelayedWarpOp == 0) {
         // Sets this before going through any possible modifications.
-        gPuppyCam.flags = gPuppyCam.intendedFlags;
+        gPuppyCam[gCurrentMario].flags = gPuppyCam[gCurrentMario].intendedFlags;
         puppycam_input_core();
         puppycam_projection();
         puppycam_script();
-        if (gPuppyCam.flags & PUPPYCAM_BEHAVIOUR_COLLISION) {
+        if (gPuppyCam[gCurrentMario].flags & PUPPYCAM_BEHAVIOUR_COLLISION) {
             puppycam_collision();
         } else {
-            gPuppyCam.opacity = 255;
+            gPuppyCam[gCurrentMario].opacity = 255;
         }
-    } else if (gPuppyCam.cutscene) {
-        gPuppyCam.opacity = 255;
+    } else if (gPuppyCam[gCurrentMario].cutscene) {
+        gPuppyCam[gCurrentMario].opacity = 255;
         puppycam_process_cutscene();
     }
     puppycam_apply();
