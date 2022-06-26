@@ -117,15 +117,20 @@ void bhv_door_init(void) {
 }
 
 void bhv_door_rendering_loop(void) {
-    o->oDoorIsRendering = (
-        gMarioCurrentRoom == 0
-        || gMarioCurrentRoom == o->oDoorSelfRoom
-        || gMarioCurrentRoom == o->oDoorForwardRoom
-        || gMarioCurrentRoom == o->oDoorBackwardRoom
-        || gDoorAdjacentRooms[gMarioCurrentRoom][0] == o->oDoorForwardRoom
-        || gDoorAdjacentRooms[gMarioCurrentRoom][0] == o->oDoorBackwardRoom
-        || gDoorAdjacentRooms[gMarioCurrentRoom][1] == o->oDoorForwardRoom
-        || gDoorAdjacentRooms[gMarioCurrentRoom][1] == o->oDoorBackwardRoom
-    );
+    for (u32 i = 0; i < gNumPlayers; i++) {
+        o->oDoorIsRendering = (
+            gMarioCurrentRoom[i] == 0
+            || gMarioCurrentRoom[i] == o->oDoorSelfRoom
+            || gMarioCurrentRoom[i] == o->oDoorForwardRoom
+            || gMarioCurrentRoom[i] == o->oDoorBackwardRoom
+            || gDoorAdjacentRooms[gMarioCurrentRoom[i]][0] == o->oDoorForwardRoom
+            || gDoorAdjacentRooms[gMarioCurrentRoom[i]][0] == o->oDoorBackwardRoom
+            || gDoorAdjacentRooms[gMarioCurrentRoom[i]][1] == o->oDoorForwardRoom
+            || gDoorAdjacentRooms[gMarioCurrentRoom[i]][1] == o->oDoorBackwardRoom
+        );
+        if (o->oDoorIsRendering) {
+            break;
+        }
+    }
     COND_BIT(o->oDoorIsRendering, o->header.gfx.node.flags, GRAPH_RENDER_ACTIVE);
 }

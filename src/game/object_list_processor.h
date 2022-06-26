@@ -112,7 +112,7 @@ extern s16 gCollisionFlags;
 extern TerrainData *gEnvironmentRegions;
 extern s32 gEnvironmentLevels[20];
 extern RoomData gDoorAdjacentRooms[60][2];
-extern s16 gMarioCurrentRoom;
+extern s16 gMarioCurrentRoom[NUM_PLAYERS];
 extern s16 gTHIWaterDrained;
 extern s16 gTTCSpeedSetting;
 extern s16 gMarioShotFromCannon;

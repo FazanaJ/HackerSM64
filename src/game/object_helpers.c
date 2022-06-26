@@ -136,13 +136,13 @@ Gfx *geo_switch_area(s32 callContext, struct GraphNode *node, UNUSED void *conte
                 find_room_floor(gMarioObject->oPosX, gMarioObject->oPosY, gMarioObject->oPosZ, &floor);
             } else {
                 // Since no intangible floors are nearby, use Mario's floor instead.
-                floor = gMarioState->floor;
+                floor = gMarioStates[gCurrPlayerGraph].floor;
             }
 #else
-            floor = gMarioState->floor;
+            floor = gMarioStates[gCurrPlayerGraph].floor;
 #endif
             if (floor) {
-                gMarioCurrentRoom = floor->room;
+                gMarioCurrentRoom[gCurrPlayerGraph] = floor->room;
                 s16 roomCase = floor->room - 1;
                 print_debug_top_down_objectinfo("areainfo %d", floor->room);
 
@@ -1897,8 +1897,8 @@ void cur_obj_enable_rendering_if_mario_in_room(void) {
     if (o->oRoom != -1 && gMarioCurrentRoom != 0) {
         register s32 marioInRoom = (
             gMarioCurrentRoom == o->oRoom
-            || gDoorAdjacentRooms[gMarioCurrentRoom][0] == o->oRoom
-            || gDoorAdjacentRooms[gMarioCurrentRoom][1] == o->oRoom
+            || gDoorAdjacentRooms[gMarioCurrentRoom[gCurrentMario]][0] == o->oRoom
+            || gDoorAdjacentRooms[gMarioCurrentRoom[gCurrentMario]][1] == o->oRoom
         );
 
         if (marioInRoom) {
