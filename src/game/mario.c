@@ -1889,7 +1889,7 @@ void init_mario(void) {
 
 void init_mario_from_save_file(void) {
     for (u32 i = 0; i < NUM_PLAYERS; i++) {
-        gMarioStates[i].playerID = 0;
+        gMarioStates[i].playerID = i;
         gMarioStates[i].flags = MARIO_NONE;
         gMarioStates[i].action = ACT_UNINITIALIZED;
         gMarioStates[i].spawnInfo = &gPlayerSpawnInfos[0];
@@ -1897,10 +1897,6 @@ void init_mario_from_save_file(void) {
         gMarioStates[i].marioBodyState = &gBodyStates[i];
         gMarioStates[i].controller = &gControllers[i];
         gMarioStates[i].animList = &gMarioAnimsBuf[i];
-
-        gMarioStates[i].numCoins = 0;
-        gMarioStates[i].numStars = save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1);
-        gMarioStates[i].numKeys = 0;
 
     #ifdef SAVE_NUM_LIVES
         s8 savedLives = save_file_get_num_lives();
@@ -1916,6 +1912,9 @@ void init_mario_from_save_file(void) {
         gMarioStates[i].prevNumStarsForDialog = gMarioStates[i].numStars;
         gMarioStates[i].animYTrans = 0xBD;
     }
+    gMarioStates[0].numCoins = 0;
+    gMarioStates[0].numStars = save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1);
+    gMarioStates[0].numKeys = 0;
     gHudDisplay.coins = 0;
     gHudDisplay.wedges = 8;
 }

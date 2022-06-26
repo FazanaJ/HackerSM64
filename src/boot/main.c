@@ -54,7 +54,7 @@ OSMesg gUnknownMesgBuf[16];
 OSViMode VI;
 
 struct Config gConfig;
-u8 gNumPlayers = 2;
+u8 gNumPlayers = 3;
 
 struct VblankHandler *gVblankHandler1       = NULL;
 struct VblankHandler *gVblankHandler2       = NULL;

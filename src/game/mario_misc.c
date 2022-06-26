@@ -412,7 +412,7 @@ Gfx *geo_mario_head_rotation(s32 callContext, struct GraphNode *node, UNUSED Mat
 
     if (callContext == GEO_CONTEXT_RENDER) {
         struct GraphNodeRotation *rotNode = (struct GraphNodeRotation *) node->next;
-        struct Camera *camera = gCurGraphNodeCamera->config.camera;
+        struct Camera *camera = gCurGraphNodeCamera->config.camera[gCurrPlayerGraph];
 
         if (camera->mode == CAMERA_MODE_C_UP) {
             rotNode->rotation[0] = gPlayerCameraState->headRotation[1];
@@ -571,7 +571,7 @@ Gfx *geo_switch_mario_hand_grab_pos(s32 callContext, struct GraphNode *node, Mat
         // This is why it won't update during a pause buffered hitstun or when the camera is very far
         // away.
         get_pos_from_transform_mtx(marioState->marioBodyState->heldObjLastPosition, *curTransform,
-                                   *gCurGraphNodeCamera->matrixPtr);
+                                   *gCurGraphNodeCamera->matrixPtr[gCurrPlayerGraph]);
     }
     return NULL;
 }
