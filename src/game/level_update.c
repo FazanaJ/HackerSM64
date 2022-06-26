@@ -353,7 +353,10 @@ void init_mario_after_warp(void) {
         gMarioState->usedObj = spawnNode->object;
     }
 
-    reset_camera(gCurrentArea->camera);
+    for (gCurrentMario = 0; gCurrentMario < NUM_PLAYERS; gCurrentMario++) {
+        reset_camera(gCurrentArea->camera[gCurrentMario]);
+    }
+    gCurrentMario = 0;
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
 
@@ -473,7 +476,10 @@ void warp_credits(void) {
 
     set_mario_action(gMarioState, marioAction, 0);
 
-    reset_camera(gCurrentArea->camera);
+    for (gCurrentMario = 0; gCurrentMario < NUM_PLAYERS; gCurrentMario++) {
+        reset_camera(gCurrentArea->camera[gCurrentMario]);
+    }
+    gCurrentMario = 0;
 
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
@@ -520,14 +526,14 @@ void check_instant_warp(void) {
                 gMarioObject->header.gfx.pos[1] = gMarioState->pos[1];
                 gMarioObject->header.gfx.pos[2] = gMarioState->pos[2];
 
-                cameraAngle = gMarioState->area->camera->yaw;
+                cameraAngle = gMarioState->area->camera[gCurrentMario]->yaw;
 
                 change_area(warp->area);
                 gMarioState->area = gCurrentArea;
 
                 warp_camera(warp->displacement[0], warp->displacement[1], warp->displacement[2]);
 
-                gMarioState->area->camera->yaw = cameraAngle;
+                gMarioState->area->camera[gCurrentMario]->yaw = cameraAngle;
             }
         }
     }
@@ -1177,8 +1183,10 @@ s32 init_level(void) {
         }
 
         if (gCurrentArea != NULL) {
-            reset_camera(gCurrentArea->camera);
-
+            for (gCurrentMario = 0; gCurrentMario < NUM_PLAYERS; gCurrentMario++) {
+                reset_camera(gCurrentArea->camera[gCurrentMario]);
+            }
+    gCurrentMario = 0;
 #ifdef PEACH_SKIP
             if (gCurrDemoInput != NULL) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);

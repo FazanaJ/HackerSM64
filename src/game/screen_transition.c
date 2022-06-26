@@ -12,6 +12,7 @@
 #include "screen_transition.h"
 #include "segment2.h"
 #include "sm64.h"
+#include "rendering_graph_node.h"
 
 u8 sTransitionColorFadeCount[4] = { 0 };
 u16 sTransitionTextureFadeCount[2] = { 0 };
@@ -293,7 +294,7 @@ Gfx *geo_cannon_circle_base(s32 callContext, struct GraphNode *node, UNUSED Mat4
     Gfx *dlist = NULL;
 
     if (callContext == GEO_CONTEXT_RENDER && gCurrentArea != NULL
-        && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
+        && gCurrentArea->camera[gCurrPlayerGraph]->mode == CAMERA_MODE_INSIDE_CANNON) {
         SET_GRAPH_NODE_LAYER(graphNode->fnNode.node.flags, LAYER_TRANSPARENT);
 #ifndef L3DEX2_ALONE
         dlist = render_cannon_circle_base();

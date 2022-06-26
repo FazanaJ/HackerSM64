@@ -573,17 +573,17 @@ void geo_process_camera(struct GraphNodeCamera *node) {
     if (node->fnNode.func != NULL) {
         node->fnNode.func(GEO_CONTEXT_RENDER, &node->fnNode.node, gMatStack[gMatStackIndex]);
     }
-    mtxf_rotate_xy(rollMtx, node->rollScreen);
+    mtxf_rotate_xy(rollMtx, node->rollScreen[gCurrPlayerGraph]);
 
     gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(rollMtx), G_MTX_PROJECTION | G_MTX_MUL | G_MTX_NOPUSH);
 
-    mtxf_lookat(cameraTransform, node->pos, node->focus, node->roll);
+    mtxf_lookat(cameraTransform, node->pos[gCurrPlayerGraph], node->focus[gCurrPlayerGraph], node->roll[gCurrPlayerGraph]);
     mtxf_mul(gMatStack[gMatStackIndex + 1], cameraTransform, gMatStack[gMatStackIndex]);
     inc_mat_stack();
 
     if (node->fnNode.node.children != 0) {
         gCurGraphNodeCamera = node;
-        node->matrixPtr = &gMatStack[gMatStackIndex];
+        node->matrixPtr[gCurrPlayerGraph] = &gMatStack[gMatStackIndex];
         geo_process_node_and_siblings(node->fnNode.node.children);
         gCurGraphNodeCamera = NULL;
     }
@@ -666,7 +666,7 @@ void geo_process_billboard(struct GraphNodeBillboard *node) {
         vec3f_copy(scale, gCurGraphNodeObject->scale);
     }
 
-    mtxf_billboard(gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex], translation, scale, gCurGraphNodeCamera->roll);
+    mtxf_billboard(gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex], translation, scale, gCurGraphNodeCamera->roll[gCurrPlayerGraph]);
 
     inc_mat_stack();
     append_dl_and_return((struct GraphNodeDisplayList *)node);
@@ -708,30 +708,32 @@ void geo_process_generated_list(struct GraphNodeGenerated *node) {
 void geo_process_background(struct GraphNodeBackground *node) {
     Gfx *list = NULL;
 
-    if (node->fnNode.func != NULL) {
+    if (gCurrPlayerGraph == 0) {
+        if (node->fnNode.func != NULL) {
         list = node->fnNode.func(GEO_CONTEXT_RENDER, &node->fnNode.node,
                                  (struct AllocOnlyPool *) gMatStack[gMatStackIndex]);
-    }
-    if (list != NULL) {
-        geo_append_display_list((void *) VIRTUAL_TO_PHYSICAL(list), GET_GRAPH_NODE_LAYER(node->fnNode.node.flags));
-    } else if (gCurGraphNodeMasterList != NULL) {
+        }
+        if (list != NULL) {
+            geo_append_display_list((void *) VIRTUAL_TO_PHYSICAL(list), GET_GRAPH_NODE_LAYER(node->fnNode.node.flags));
+        } else if (gCurGraphNodeMasterList != NULL) {
 #ifndef F3DEX_GBI_2E
-        Gfx *gfxStart = alloc_display_list(sizeof(Gfx) * 7);
+            Gfx *gfxStart = alloc_display_list(sizeof(Gfx) * 7);
 #else
-        Gfx *gfxStart = alloc_display_list(sizeof(Gfx) * 8);
+            Gfx *gfxStart = alloc_display_list(sizeof(Gfx) * 8);
 #endif
-        Gfx *gfx = gfxStart;
+            Gfx *gfx = gfxStart;
 
-        gDPPipeSync(gfx++);
-        gDPSetCycleType(gfx++, G_CYC_FILL);
-        gDPSetFillColor(gfx++, node->background);
-        gDPFillRectangle(gfx++, GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(0), gBorderHeight,
-        GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(0) - 1, SCREEN_HEIGHT - gBorderHeight - 1);
-        gDPPipeSync(gfx++);
-        gDPSetCycleType(gfx++, G_CYC_1CYCLE);
-        gSPEndDisplayList(gfx++);
+            gDPPipeSync(gfx++);
+            gDPSetCycleType(gfx++, G_CYC_FILL);
+            gDPSetFillColor(gfx++, node->background);
+            gDPFillRectangle(gfx++, GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(0), gBorderHeight,
+            GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(0) - 1, SCREEN_HEIGHT - gBorderHeight - 1);
+            gDPPipeSync(gfx++);
+            gDPSetCycleType(gfx++, G_CYC_1CYCLE);
+            gSPEndDisplayList(gfx++);
 
-        geo_append_display_list((void *) VIRTUAL_TO_PHYSICAL(gfxStart), LAYER_FORCE);
+            geo_append_display_list((void *) VIRTUAL_TO_PHYSICAL(gfxStart), LAYER_FORCE);
+        }
     }
     if (node->fnNode.node.children != NULL) {
         geo_process_node_and_siblings(node->fnNode.node.children);
@@ -889,7 +891,7 @@ void geo_process_shadow(struct GraphNodeShadow *node) {
 
         if (gCurGraphNodeHeldObject != NULL) {
             get_pos_from_transform_mtx(shadowPos, gMatStack[gMatStackIndex],
-                                       *gCurGraphNodeCamera->matrixPtr);
+                                       *gCurGraphNodeCamera->matrixPtr[gCurrPlayerGraph]);
             shadowScale = node->shadowScale * gCurGraphNodeHeldObject->objNode->header.gfx.scale[0];
         } else {
             vec3f_copy(shadowPos, gCurGraphNodeObject->pos);
@@ -928,7 +930,7 @@ void geo_process_shadow(struct GraphNodeShadow *node) {
                                                   node->shadowSolidity, node->shadowType, shifted);
 
         if (shadowList != NULL) {
-            mtxf_shadow(gMatStack[gMatStackIndex + 1], *gCurGraphNodeCamera->matrixPtr,
+            mtxf_shadow(gMatStack[gMatStackIndex + 1], *gCurGraphNodeCamera->matrixPtr[gCurrPlayerGraph],
                 gCurrShadow.floorNormal, shadowPos, gCurrShadow.scale, gCurGraphNodeObject->angle[1]);
 
             inc_mat_stack();
@@ -1070,7 +1072,7 @@ void geo_process_object(struct Object *node) {
             mtxf_scale_vec3f(gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex + 1], node->header.gfx.scale);
         } else if (node->header.gfx.node.flags & GRAPH_RENDER_BILLBOARD) {
             mtxf_billboard(gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex],
-                           node->header.gfx.pos, node->header.gfx.scale, gCurGraphNodeCamera->roll);
+                           node->header.gfx.pos, node->header.gfx.scale, gCurGraphNodeCamera->roll[gCurrPlayerGraph]);
         } else {
             mtxf_rotate_zxy_and_translate_and_mul(node->header.gfx.angle, node->header.gfx.pos, gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex]);
             mtxf_scale_vec3f(gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex + 1], node->header.gfx.scale);

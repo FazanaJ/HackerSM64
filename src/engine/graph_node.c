@@ -186,12 +186,14 @@ struct GraphNodeCamera *init_graph_node_camera(struct AllocOnlyPool *pool,
 
     if (graphNode != NULL) {
         init_scene_graph_node_links(&graphNode->fnNode.node, GRAPH_NODE_TYPE_CAMERA);
-        vec3f_copy(graphNode->pos, pos);
-        vec3f_copy(graphNode->focus, focus);
-        graphNode->fnNode.func = func;
-        graphNode->config.mode = mode;
-        graphNode->roll = 0;
-        graphNode->rollScreen = 0;
+        for (u32 i = 0; i < NUM_PLAYERS; i++) {
+            vec3f_copy(graphNode->pos[i], pos);
+            vec3f_copy(graphNode->focus[i], focus);
+            graphNode->fnNode.func = func;
+            graphNode->config.mode = mode;
+            graphNode->roll[i] = 0;
+            graphNode->rollScreen[i] = 0;
+        }
 
         if (func != NULL) {
             func(GEO_CONTEXT_CREATE, &graphNode->fnNode.node, pool);

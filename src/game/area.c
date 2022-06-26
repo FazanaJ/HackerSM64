@@ -195,7 +195,9 @@ void clear_areas(void) {
         gAreaData[i].paintingWarpNodes = NULL;
         gAreaData[i].instantWarps = NULL;
         gAreaData[i].objectSpawnInfos = NULL;
-        gAreaData[i].camera = NULL;
+        for (u32 j = 0; j < NUM_PLAYERS; j++) {
+            gAreaData[i].camera[j] = NULL;
+        }
         gAreaData[i].unused = NULL;
         gAreaData[i].whirlpools[0] = NULL;
         gAreaData[i].whirlpools[1] = NULL;

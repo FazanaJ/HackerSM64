@@ -151,7 +151,7 @@ s32 act_holding_pole(struct MarioState *m) {
 
 s32 act_climbing_pole(struct MarioState *m) {
     struct Object *marioObj = m->marioObj;
-    s16 cameraAngle = m->area->camera->yaw;
+    s16 cameraAngle = m->area->camera[gCurrentMario]->yaw;
 
     if (m->health < 0x100) {
         add_tree_leaf_particles(m);

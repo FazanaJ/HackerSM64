@@ -21,6 +21,7 @@
 #include "spawn_object.h"
 #include "puppyprint.h"
 #include "puppylights.h"
+#include "main.h"
 
 
 /**
@@ -270,6 +271,8 @@ void bhv_mario_update(void) {
     }
     gMarioState = &gMarioStates[0];
     gCurrentMario++;
+    if (gCurrentMario > gNumPlayers)
+        gCurrentMario = gNumPlayers;
 }
 
 /**

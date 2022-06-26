@@ -519,7 +519,7 @@ s32 act_debug_free_move(struct MarioState *m) {
 
     f32 speed = (gPlayer1Controller->buttonDown & B_BUTTON) ? 4.0f : 1.0f;
     if (gPlayer1Controller->buttonDown & Z_TRIG) speed = 0.01f;
-    if (m->area->camera->mode != CAMERA_MODE_8_DIRECTIONS) set_camera_mode(m->area->camera, CAMERA_MODE_8_DIRECTIONS, 1);
+    if (m->area->camera[gCurrentMario]->mode != CAMERA_MODE_8_DIRECTIONS) set_camera_mode(m->area->camera[gCurrentMario], CAMERA_MODE_8_DIRECTIONS, 1);
 
     set_mario_animation(m, MARIO_ANIM_A_POSE);
     vec3f_copy(pos, m->pos);
@@ -534,7 +534,7 @@ s32 act_debug_free_move(struct MarioState *m) {
         vec3_zero(m->vel);
         m->forwardVel = 0.0f;
 
-        set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
+        set_camera_mode(m->area->camera[gCurrentMario], m->area->camera[gCurrentMario]->defMode, 1);
         m->input &= ~INPUT_A_PRESSED;
         if (m->pos[1] <= (m->waterLevel - 100)) {
             return set_mario_action(m, ACT_WATER_IDLE, 0);
@@ -631,7 +631,7 @@ void general_star_dance_handler(struct MarioState *m, s32 isInWater) {
 }
 
 s32 act_star_dance(struct MarioState *m) {
-    m->faceAngle[1] = m->area->camera->yaw;
+    m->faceAngle[1] = m->area->camera[gCurrentMario]->yaw;
     set_mario_animation(m, m->actionState == ACT_STATE_STAR_DANCE_RETURN ? MARIO_ANIM_RETURN_FROM_STAR_DANCE
                                                                          : MARIO_ANIM_STAR_DANCE);
     general_star_dance_handler(m, FALSE);
@@ -643,7 +643,7 @@ s32 act_star_dance(struct MarioState *m) {
 }
 
 s32 act_star_dance_water(struct MarioState *m) {
-    m->faceAngle[1] = m->area->camera->yaw;
+    m->faceAngle[1] = m->area->camera[gCurrentMario]->yaw;
     set_mario_animation(m, m->actionState == ACT_STATE_STAR_DANCE_RETURN ? MARIO_ANIM_RETURN_FROM_WATER_STAR_DANCE
                                                                          : MARIO_ANIM_WATER_STAR_DANCE);
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
@@ -1454,8 +1454,8 @@ s32 act_teleport_fade_in(struct MarioState *m) {
     if (m->actionTimer++ == 32) {
         if (m->pos[1] < m->waterLevel - 100) {
             // Check if the camera is not underwater.
-            if (m->area->camera->mode != WATER_SURFACE_CAMERA_MODE) {
-                set_camera_mode(m->area->camera, WATER_SURFACE_CAMERA_MODE, 1);
+            if (m->area->camera[gCurrentMario]->mode != WATER_SURFACE_CAMERA_MODE) {
+                set_camera_mode(m->area->camera[gCurrentMario], WATER_SURFACE_CAMERA_MODE, 1);
             }
             set_mario_action(m, ACT_WATER_IDLE, 0);
         } else {
@@ -2531,8 +2531,8 @@ static s32 act_credits_cutscene(struct MarioState *m) {
     m->statusForCamera->cameraEvent = CAM_EVENT_START_CREDITS;
     // checks if Mario is underwater (JRB, DDD, SA, etc.)
     if (m->pos[1] < m->waterLevel - 100) {
-        if (m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
-            set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
+        if (m->area->camera[gCurrentMario]->mode != CAMERA_MODE_BEHIND_MARIO) {
+            set_camera_mode(m->area->camera[gCurrentMario], CAMERA_MODE_BEHIND_MARIO, 1);
         }
         set_mario_animation(m, MARIO_ANIM_WATER_IDLE);
         vec3f_copy(m->marioObj->header.gfx.pos, m->pos);

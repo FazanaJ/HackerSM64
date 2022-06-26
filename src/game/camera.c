@@ -29,6 +29,7 @@
 #include "puppyprint.h"
 #include "mario.h"
 #include "rendering_graph_node.h"
+#include "main.h"
 
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
 
@@ -183,7 +184,7 @@ struct CutsceneSplinePoint sCurCreditsSplineFocus[32];
 
 /**
  * The progress (from 0 to 1) through the current spline segment.
- * When it becomes >= 1, 1.0 is subtracted from it and sCutsceneSplineSegment[gCurrentMario] is increased.
+ * When it becomes >= 1, 1.0 is subtracted from it and sCutsceneSplineSegment is increased.
  */
 f32 sCutsceneSplineSegmentProgress[NUM_PLAYERS];
 
@@ -259,7 +260,7 @@ s16 gCutsceneTimer[NUM_PLAYERS];
 s16 sAreaYaw[NUM_PLAYERS];
 
 /**
- * How much sAreaYaw[gCurrentMario] changed when Mario moved.
+ * How much sAreaYaw changed when Mario moved.
  */
 s16 sAreaYawChange[NUM_PLAYERS];
 
@@ -397,7 +398,7 @@ u8 gRecentCutscene[NUM_PLAYERS] = {CUTSCENE_NONE, CUTSCENE_NONE, CUTSCENE_NONE, 
 
 /**
  * A timer that increments for 8 frames when a cutscene ends.
- * When it reaches 8, it sets gRecentCutscene[gCurrentMario] to 0.
+ * When it reaches 8, it sets gRecentCutscene to 0.
  */
 u8 sFramesSinceCutsceneEnded[NUM_PLAYERS] = {0, 0, 0, 0};
 /**
@@ -636,7 +637,7 @@ void calc_y_to_curr_floor(f32 *posOff, f32 posMul, f32 posBound, f32 *focOff, f3
     f32 waterHeight;
 
     if (!(sMarioCamState[gCurrentMario]->action & ACT_FLAG_METAL_WATER)) {
-        //! @bug this should use sMarioGeometry[gCurrentMario].waterHeight
+        //! @bug this should use sMarioGeometry.waterHeight
         if (floorHeight < (waterHeight = find_water_level(sMarioCamState[gCurrentMario]->pos[0], sMarioCamState[gCurrentMario]->pos[2]))) {
             floorHeight = waterHeight;
         }
@@ -2786,14 +2787,14 @@ void update_lakitu(struct Camera *c) {
     s16 newYaw;
 
     if (!(gCameraMovementFlags[gCurrentMario] & CAM_MOVE_PAUSE_SCREEN)) {
-        newYaw = next_lakitu_state(newPos, newFoc, c->pos, c->focus, sOldPosition, sOldFocus,
+        newYaw = next_lakitu_state(newPos, newFoc, c->pos, c->focus, sOldPosition[gCurrentMario], sOldFocus[gCurrentMario],
                                    c->nextYaw);
         set_or_approach_s16_symmetric(&c->yaw, newYaw, sYawSpeed);
         sStatusFlags[gCurrentMario] &= ~CAM_FLAG_UNUSED_CUTSCENE_ACTIVE;
 
         // Update old state
-        vec3f_copy(sOldPosition, newPos);
-        vec3f_copy(sOldFocus, newFoc);
+        vec3f_copy(sOldPosition[gCurrentMario], newPos);
+        vec3f_copy(sOldFocus[gCurrentMario], newFoc);
 
         gLakituState[gCurrentMario].yaw = c->yaw;
         gLakituState[gCurrentMario].nextYaw = c->nextYaw;
@@ -2883,7 +2884,7 @@ void update_camera(struct Camera *c) {
 #ifdef PUPPYCAM
         && !gPuppyCam[gCurrentMario].enabled
 #endif
-        && gCurrentArea->camera->mode != CAMERA_MODE_INSIDE_CANNON) {
+        && gCurrentArea->camera[gCurrentMario]->mode != CAMERA_MODE_INSIDE_CANNON) {
         // Only process R_TRIG if 'fixed' is not selected in the menu
         if (cam_select_alt_mode(CAM_SELECTION_NONE) == CAM_SELECTION_MARIO) {
             if (gMarioState->controller->buttonPressed & R_TRIG) {
@@ -2906,7 +2907,7 @@ void update_camera(struct Camera *c) {
     }
 
 #ifdef PUPPYCAM
-    if (!gPuppyCam[gCurrentMario].enabled || c->cutscene != CUTSCENE_NONE || gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
+    if (!gPuppyCam[gCurrentMario].enabled || c->cutscene != CUTSCENE_NONE || gCurrentArea->camera[gCurrentMario]->mode == CAMERA_MODE_INSIDE_CANNON) {
 #endif
     // Store previous geometry information
     sMarioGeometry[gCurrentMario].prevFloorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
@@ -2916,7 +2917,7 @@ void update_camera(struct Camera *c) {
     sMarioGeometry[gCurrentMario].prevFloorType = sMarioGeometry[gCurrentMario].currFloorType;
     sMarioGeometry[gCurrentMario].prevCeilType = sMarioGeometry[gCurrentMario].currCeilType;
 
-    find_mario_floor_and_ceil(&sMarioGeometry);
+    find_mario_floor_and_ceil(&sMarioGeometry[gCurrentMario]);
     gCollisionFlags |= COLLISION_FLAG_CAMERA;
     vec3f_copy(c->pos, gLakituState[gCurrentMario].goalPos);
     vec3f_copy(c->focus, gLakituState[gCurrentMario].goalFocus);
@@ -3038,7 +3039,7 @@ void update_camera(struct Camera *c) {
     start_cutscene(c, get_cutscene_from_mario_status(c));
     gCollisionFlags &= ~COLLISION_FLAG_CAMERA;
 #ifdef PUPPYCAM
-    if (!gPuppyCam[gCurrentMario].enabled || c->cutscene != 0 || gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
+    if (!gPuppyCam[gCurrentMario].enabled || c->cutscene != 0 || gCurrentArea->camera[gCurrentMario]->mode == CAMERA_MODE_INSIDE_CANNON) {
 #endif
 #ifdef ENABLE_VANILLA_LEVEL_SPECIFIC_CHECKS
     if (gCurrLevelNum != LEVEL_CASTLE) {
@@ -3094,7 +3095,7 @@ void update_camera(struct Camera *c) {
     }
     if (c->cutscene == CUTSCENE_NONE
         && gPuppyCam[gCurrentMario].enabled
-        && gCurrentArea->camera->mode != CAMERA_MODE_INSIDE_CANNON) {
+        && gCurrentArea->camera[gCurrentMario]->mode != CAMERA_MODE_INSIDE_CANNON) {
         // Clear the recent cutscene after 8 frames
         if (gRecentCutscene[gCurrentMario] != CUTSCENE_NONE && sFramesSinceCutsceneEnded[gCurrentMario] < 8) {
             sFramesSinceCutsceneEnded[gCurrentMario]++;
@@ -3159,7 +3160,7 @@ void reset_camera(struct Camera *c) {
     sCSideButtonYaw[gCurrentMario] = 0;
     s8DirModeBaseYaw[gCurrentMario] = 0;
     s8DirModeYawOffset[gCurrentMario] = 0;
-    c->doorStatus = DOOR_DEFAULT;
+    //c->doorStatus = DOOR_DEFAULT;
     sMarioCamState[gCurrentMario]->headRotation[0] = 0;
     sMarioCamState[gCurrentMario]->headRotation[1] = 0;
     // sLuigiCamState->headRotation[0] = 0;
@@ -3209,7 +3210,7 @@ void init_camera(struct Camera *c) {
     sStatusFlags[gCurrentMario] &= ~CAM_FLAG_SMOOTH_MOVEMENT;
     vec3_zero(sCastleEntranceOffset[gCurrentMario]);
     vec3_zero(sPlayer2FocusOffset);
-    find_mario_floor_and_ceil(&sMarioGeometry);
+    find_mario_floor_and_ceil(&sMarioGeometry[gCurrentMario]);
     sMarioGeometry[gCurrentMario].prevFloorHeight = sMarioGeometry[gCurrentMario].currFloorHeight;
     sMarioGeometry[gCurrentMario].prevCeilHeight = sMarioGeometry[gCurrentMario].currCeilHeight;
     sMarioGeometry[gCurrentMario].prevFloor = sMarioGeometry[gCurrentMario].currFloor;
@@ -3374,11 +3375,11 @@ void zoom_out_if_paused_and_outside(struct GraphNodeCamera *camera) {
         if (sFramesPaused >= 2) {
             if (sZoomOutAreaMasks[areaMaskIndex] & areaBit) {
 
-                camera->focus[0] = gCamera->areaCenX;
-                camera->focus[1] = (sMarioCamState[gCurrentMario]->pos[1] + gCamera->areaCenY) / 2;
-                camera->focus[2] = gCamera->areaCenZ;
-                vec3f_get_yaw(camera->focus, sMarioCamState[gCurrentMario]->pos, &yaw);
-                vec3f_set_dist_and_angle(sMarioCamState[gCurrentMario]->pos, camera->pos, 6000.f, 0x1000, yaw);
+                camera->focus[gCurrPlayerGraph][0] = gCamera->areaCenX;
+                camera->focus[gCurrPlayerGraph][1] = (sMarioCamState[gCurrentMario]->pos[1] + gCamera->areaCenY) / 2;
+                camera->focus[gCurrPlayerGraph][2] = gCamera->areaCenZ;
+                vec3f_get_yaw(camera->focus[gCurrPlayerGraph], sMarioCamState[gCurrentMario]->pos, &yaw);
+                vec3f_set_dist_and_angle(sMarioCamState[gCurrentMario]->pos, camera->pos[gCurrPlayerGraph], 6000.f, 0x1000, yaw);
 #ifdef ENABLE_VANILLA_LEVEL_SPECIFIC_CHECKS
                 if (gCurrLevelNum != LEVEL_THI) {
                     find_in_bounds_yaw_wdw_bob_thi(camera->pos, camera->focus, 0);
@@ -3405,28 +3406,30 @@ void create_camera(struct GraphNodeCamera *gc, struct AllocOnlyPool *pool) {
     gc->config.mode = FORCED_CAMERA_MODE;
 #endif
     s16 mode = gc->config.mode;
-    struct Camera *c = alloc_only_pool_alloc(pool, sizeof(struct Camera));
+    for (u32 i = 0; i < NUM_PLAYERS; i++) {
+        struct Camera *c = alloc_only_pool_alloc(pool, sizeof(struct Camera));
 
-    gc->config.camera = c;
-    c->mode = mode;
-    c->defMode = mode;
-    c->cutscene = CUTSCENE_NONE;
-    c->doorStatus = DOOR_DEFAULT;
-    c->areaCenX = gc->focus[0];
-    c->areaCenY = gc->focus[1];
-    c->areaCenZ = gc->focus[2];
-    c->yaw = 0;
-    vec3f_copy(c->pos, gc->pos);
-    vec3f_copy(c->focus, gc->focus);
+        gc->config.camera[i] = c;
+        c->mode = mode;
+        c->defMode = mode;
+        c->cutscene = CUTSCENE_NONE;
+        c->doorStatus = DOOR_DEFAULT;
+        c->areaCenX = gc->focus[i][0];
+        c->areaCenY = gc->focus[i][1];
+        c->areaCenZ = gc->focus[i][2];
+        c->yaw = 0;
+        vec3f_copy(c->pos, gc->pos[i]);
+        vec3f_copy(c->focus, gc->focus[i]);
+    }
 }
 
 /**
  * Copy Lakitu's pos and foc into `gc`
  */
 void update_graph_node_camera(struct GraphNodeCamera *gc) {
-    gc->rollScreen = gLakituState[gCurrPlayerGraph].roll;
-    vec3f_copy(gc->pos, gLakituState[gCurrPlayerGraph].pos);
-    vec3f_copy(gc->focus, gLakituState[gCurrPlayerGraph].focus);
+    gc->rollScreen[gCurrPlayerGraph] = gLakituState[gCurrPlayerGraph].roll;
+    vec3f_copy(gc->pos[gCurrPlayerGraph], gLakituState[gCurrPlayerGraph].pos);
+    vec3f_copy(gc->focus[gCurrPlayerGraph], gLakituState[gCurrPlayerGraph].focus);
     zoom_out_if_paused_and_outside(gc);
 }
 
@@ -3754,6 +3757,7 @@ s32 find_c_buttons_pressed(u16 currentState, u16 buttonsPressed, u16 buttonsDown
  * Determine which icon to show on the HUD
  */
 s32 update_camera_hud_status(struct Camera *c) {
+    return 0;
     s16 status = CAM_STATUS_NONE;
 
     if (c->cutscene != CUTSCENE_NONE
@@ -10945,7 +10949,7 @@ void fov_default(struct MarioState *m) {
         camera_approach_f32_symmetric_bool(&sFOVState[gCurrentMario].fov, 45.f, (45.f - sFOVState[gCurrentMario].fov) / 30.f);
         sFOVState[gCurrentMario].unusedIsSleeping = 0;
     }
-    if (m->area->camera->cutscene == CUTSCENE_0F_UNUSED) {
+    if (m->area->camera[gCurrentMario]->cutscene == CUTSCENE_0F_UNUSED) {
         sFOVState[gCurrentMario].fov = 45.f;
     }
 }
@@ -10961,7 +10965,7 @@ void approach_fov_60(UNUSED struct MarioState *m) {
 void approach_fov_45(struct MarioState *m) {
     f32 targetFoV = sFOVState[gCurrentMario].fov;
 
-    if (m->area->camera->mode == CAMERA_MODE_FIXED && m->area->camera->cutscene == 0) {
+    if (m->area->camera[gCurrentMario]->mode == CAMERA_MODE_FIXED && m->area->camera[gCurrentMario]->cutscene == 0) {
         targetFoV = 45.f;
     } else {
         targetFoV = 45.f;
@@ -10981,7 +10985,7 @@ void approach_fov_80(UNUSED struct MarioState *m) {
 void set_fov_bbh(struct MarioState *m) {
     f32 targetFoV = sFOVState[gCurrentMario].fov;
 
-    if (m->area->camera->mode == CAMERA_MODE_FIXED && m->area->camera->cutscene == 0) {
+    if (m->area->camera[gCurrentMario]->mode == CAMERA_MODE_FIXED && m->area->camera[gCurrentMario]->cutscene == 0) {
         targetFoV = 60.f;
     } else {
         targetFoV = 45.f;

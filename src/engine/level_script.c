@@ -404,9 +404,13 @@ static void level_cmd_begin_area(void) {
         gAreas[areaIndex].graphNode = screenArea;
 
         if (node != NULL) {
-            gAreas[areaIndex].camera = (struct Camera *) node->config.camera;
+            for (u32 i = 0; i < NUM_PLAYERS; i++) {
+                gAreas[areaIndex].camera[i] = (struct Camera *) node->config.camera[i];
+            }
         } else {
-            gAreas[areaIndex].camera = NULL;
+            for (u32 i = 0; i < NUM_PLAYERS; i++) {
+                gAreas[areaIndex].camera[i] = NULL;
+            }
         }
     }
 

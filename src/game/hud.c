@@ -560,7 +560,7 @@ void render_hud(void) {
         create_dl_ortho_matrix();
 #endif
 
-        if (gCurrentArea != NULL && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
+        if (gCurrentArea != NULL && gCurrentArea->camera[gCurrentMario]->mode == CAMERA_MODE_INSIDE_CANNON) {
             render_hud_cannon_reticle();
         }
 

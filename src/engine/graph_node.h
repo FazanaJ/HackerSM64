@@ -235,13 +235,13 @@ struct GraphNodeCamera {
         // the mode is passed to the struct, and the field is overridden
         // by a pointer to the struct. Gotta save those 4 bytes.
         s32 mode;
-        struct Camera *camera;
+        struct Camera *camera[NUM_PLAYERS];
     } config;
-    /*0x1C*/ Vec3f pos;
-    /*0x28*/ Vec3f focus;
-    /*0x34*/ Mat4 *matrixPtr; // pointer to look-at matrix of this camera as a Mat4
-    /*0x38*/ s16 roll; // roll in look at matrix. Doesn't account for light direction unlike rollScreen.
-    /*0x3A*/ s16 rollScreen; // rolls screen while keeping the light direction consistent
+    /*0x1C*/ Vec3f pos[NUM_PLAYERS];
+    /*0x28*/ Vec3f focus[NUM_PLAYERS];
+    /*0x34*/ Mat4 *matrixPtr[NUM_PLAYERS]; // pointer to look-at matrix of this camera as a Mat4
+    /*0x38*/ s16 roll[NUM_PLAYERS]; // roll in look at matrix. Doesn't account for light direction unlike rollScreen.
+    /*0x3A*/ s16 rollScreen[NUM_PLAYERS]; // rolls screen while keeping the light direction consistent
 };
 
 /** GraphNode that translates and rotates its children.

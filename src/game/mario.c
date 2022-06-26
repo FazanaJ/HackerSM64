@@ -33,7 +33,7 @@
 #include "sound_init.h"
 #include "rumble_init.h"
 
-u8 gCurrentMario;
+u8 gCurrentMario = 0;
 
 
 /**************************************************
@@ -681,19 +681,19 @@ Bool32 set_mario_floor(struct MarioState *m, struct Surface *floor, f32 floorHei
  */
 void update_mario_sound_and_camera(struct MarioState *m) {
     u32 action = m->action;
-    s32 camPreset = m->area->camera->mode;
+    s32 camPreset = m->area->camera[gCurrentMario]->mode;
 
     if (action == ACT_FIRST_PERSON) {
         raise_background_noise(2);
         gCameraMovementFlags[gCurrentMario] &= ~CAM_MOVE_C_UP_MODE;
         // Go back to the last camera mode
-        set_camera_mode(m->area->camera, -1, 1);
+        set_camera_mode(m->area->camera[gCurrentMario], -1, 1);
     } else if (action == ACT_SLEEPING) {
         raise_background_noise(2);
     }
 
     if (!(action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER)) && (camPreset == DEEP_WATER_CAMERA_MODE || camPreset == WATER_SURFACE_CAMERA_MODE)) {
-        set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
+        set_camera_mode(m->area->camera[gCurrentMario], m->area->camera[gCurrentMario]->defMode, 1);
     }
 }
 
@@ -1096,7 +1096,7 @@ s32 check_common_hold_action_exits(struct MarioState *m) {
  * Transitions Mario from a submerged action to a walking action.
  */
 s32 transition_submerged_to_walking(struct MarioState *m) {
-    set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
+    set_camera_mode(m->area->camera[gCurrentMario], m->area->camera[gCurrentMario]->defMode, 1);
 
     vec3_zero(m->angleVel);
 
@@ -1112,7 +1112,7 @@ s32 transition_submerged_to_walking(struct MarioState *m) {
  * You may want to change these actions to fit your hack
  */
 s32 transition_submerged_to_airborne(struct MarioState *m) {
-    set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
+    set_camera_mode(m->area->camera[gCurrentMario], m->area->camera[gCurrentMario]->defMode, 1);
 
     vec3_zero(m->angleVel);
 
@@ -1145,8 +1145,8 @@ s32 set_water_plunge_action(struct MarioState *m) {
         m->faceAngle[0] = 0;
     }
 
-    if (m->area->camera->mode != WATER_SURFACE_CAMERA_MODE) {
-        set_camera_mode(m->area->camera, WATER_SURFACE_CAMERA_MODE, 1);
+    if (m->area->camera[gCurrentMario]->mode != WATER_SURFACE_CAMERA_MODE) {
+        set_camera_mode(m->area->camera[gCurrentMario], WATER_SURFACE_CAMERA_MODE, 1);
     }
 
     return set_mario_action(m, ACT_WATER_PLUNGE, 0);
@@ -1250,7 +1250,7 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     }
 
     if (m->intendedMag > 0.0f) {
-        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
+        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera[gCurrentMario]->yaw;
         m->input |= INPUT_NONZERO_ANALOG;
     } else {
         m->intendedYaw = m->faceAngle[1];
@@ -1378,26 +1378,26 @@ void set_submerged_cam_preset_and_spawn_bubbles(struct MarioState *m) {
 
     if ((m->action & ACT_GROUP_MASK) == ACT_GROUP_SUBMERGED) {
         heightBelowWater = (f32)(m->waterLevel - 80) - m->pos[1];
-        camPreset = m->area->camera->mode;
+        camPreset = m->area->camera[gCurrentMario]->mode;
 
         if (m->action & ACT_FLAG_METAL_WATER) {
 #ifdef USE_COURSE_DEFAULT_MODE
             // Being metal and in the water uses the default camera mode
-            if (camPreset != m->area->camera->defMode) {
-                set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
+            if (camPreset != m->area->camera[gCurrentMario]->defMode) {
+                set_camera_mode(m->area->camera[gCurrentMario], m->area->camera[gCurrentMario]->defMode, 1);
             }
 #else
             if (camPreset != CAMERA_MODE_CLOSE) {
-                set_camera_mode(m->area->camera, CAMERA_MODE_CLOSE, 1);
+                set_camera_mode(m->area->camera[gCurrentMario], CAMERA_MODE_CLOSE, 1);
             }
 #endif
         } else {
             if ((heightBelowWater > 800.0f) && (camPreset != DEEP_WATER_CAMERA_MODE)) {
-                set_camera_mode(m->area->camera, DEEP_WATER_CAMERA_MODE, 1);
+                set_camera_mode(m->area->camera[gCurrentMario], DEEP_WATER_CAMERA_MODE, 1);
             }
 
             if ((heightBelowWater < 400.0f) && (camPreset != WATER_SURFACE_CAMERA_MODE)) {
-                set_camera_mode(m->area->camera, WATER_SURFACE_CAMERA_MODE, 1);
+                set_camera_mode(m->area->camera[gCurrentMario], WATER_SURFACE_CAMERA_MODE, 1);
             }
 
             // As long as Mario isn't drowning or at the top
@@ -1700,6 +1700,9 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
     s32 inLoop = TRUE;
     s32 particleFlags = ACTIVE_PARTICLE_NONE;
 
+    
+    update_camera(gCurrentArea->camera[0]);
+
     // Updates once per frame:
     vec3f_get_dist_and_lateral_dist_and_angle(gMarioState->prevPos, gMarioState->pos, &gMarioState->moveSpeed, &gMarioState->lateralSpeed, &gMarioState->movePitch, &gMarioState->moveYaw);
     vec3f_copy(gMarioState->prevPos, gMarioState->pos);
@@ -1707,7 +1710,7 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
     if (gMarioState->action) {
 #ifdef ENABLE_DEBUG_FREE_MOVE
         if (gPlayer1Controller->buttonDown & U_JPAD && !(gPlayer1Controller->buttonDown & L_TRIG)) {
-            set_camera_mode(gMarioState->area->camera, CAMERA_MODE_8_DIRECTIONS, 1);
+            set_camera_mode(gMarioState->area->camera[gCurrentMario], CAMERA_MODE_8_DIRECTIONS, 1);
             set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
         }
 #endif
@@ -1735,7 +1738,6 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
 
         // If Mario is OOB, stop executing actions.
         if (gMarioState->floor == NULL) {
-            update_camera(gCurrentArea->camera);
             return ACTIVE_PARTICLE_NONE;
         }
 
@@ -1784,9 +1786,6 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
 
         particleFlags = gMarioState->particleFlags;
     }
-
-    if (gCurrentMario == 0)
-    update_camera(gCurrentArea->camera);
 
     return particleFlags;
 }
