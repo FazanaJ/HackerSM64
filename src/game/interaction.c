@@ -728,24 +728,21 @@ void reset_mario_pitch(struct MarioState *m) {
 }
 
 u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *obj) {
-    m->numCoins += obj->oDamageOrCoinValue;
-    m->healCounter += 4 * obj->oDamageOrCoinValue;
-#ifdef BREATH_METER
-    m->breathCounter += (4 * obj->oDamageOrCoinValue);
-#endif
-    obj->oInteractStatus = INT_STATUS_INTERACTED;
+    s32 param = obj->oBehParams2ndByte;
 
-#ifdef X_COIN_STAR
-    if (COURSE_IS_MAIN_COURSE(gCurrCourseNum) && m->numCoins - obj->oDamageOrCoinValue < X_COIN_STAR
-        && m->numCoins >= X_COIN_STAR) {
-        bhv_spawn_star_no_level_exit(STAR_BP_ACT_100_COINS);
+    switch (param) {
+        case 0:
+            gCanJump = TRUE;
+            break;
+        case 1:
+            gCanPunch = TRUE;
+            break;
+        case 2:
+            gCanDive = TRUE;
+            break;
     }
-#endif
-#if ENABLE_RUMBLE
-    if (obj->oDamageOrCoinValue >= 2) {
-        queue_rumble_data(5, 80);
-    }
-#endif
+
+    mark_obj_for_deletion(obj);
 
     return FALSE;
 }

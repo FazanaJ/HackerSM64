@@ -27,7 +27,7 @@ s32 check_common_idle_cancels(struct MarioState *m) {
         return set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
 
-    if (m->input & INPUT_A_PRESSED) {
+    if (m->input & INPUT_A_PRESSED && gCanJump) {
         return set_jumping_action(m, ACT_JUMP, 0);
     }
 
@@ -39,21 +39,13 @@ s32 check_common_idle_cancels(struct MarioState *m) {
         return set_mario_action(m, ACT_BEGIN_SLIDING, 0);
     }
 
-    if (m->input & INPUT_FIRST_PERSON) {
-        return set_mario_action(m, ACT_FIRST_PERSON, 0);
-    }
-
     if (m->input & INPUT_NONZERO_ANALOG) {
         m->faceAngle[1] = (s16) m->intendedYaw;
         return set_mario_action(m, ACT_WALKING, 0);
     }
 
-    if (m->input & INPUT_B_PRESSED) {
+    if (m->input & INPUT_B_PRESSED && gCanPunch) {
         return set_mario_action(m, ACT_PUNCHING, 0);
-    }
-
-    if (m->input & INPUT_Z_DOWN) {
-        return set_mario_action(m, ACT_START_CROUCHING, 0);
     }
 
     return FALSE;
@@ -818,7 +810,7 @@ s32 check_common_landing_cancels(struct MarioState *m, u32 action) {
         return set_mario_action(m, ACT_IDLE, 0);
     }
 
-    if (m->input & INPUT_A_PRESSED) {
+    if (m->input & INPUT_A_PRESSED && gCanJump) {
         if (!action) {
             return set_jump_from_landing(m);
         } else {
@@ -830,7 +822,7 @@ s32 check_common_landing_cancels(struct MarioState *m, u32 action) {
         return check_common_action_exits(m);
     }
 
-    if (m->input & INPUT_B_PRESSED) {
+    if (m->input & INPUT_B_PRESSED && gCanPunch) {
         return set_mario_action(m, ACT_PUNCHING, 0);
     }
 

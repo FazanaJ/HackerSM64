@@ -455,6 +455,30 @@ Gfx *geo_switch_mario_hand(s32 callContext, struct GraphNode *node, UNUSED Mat4 
     return NULL;
 }
 
+Gfx *get_ak47_colour(s32 callContext, struct GraphNode *node, UNUSED Mat4 *mtx) {
+    struct Object *obj = gCurGraphNodeObjectNode;
+    Gfx *dlHead = alloc_display_list(2 * sizeof(*dlHead));
+    Gfx *dlTail = dlHead;
+
+    if (callContext == GEO_CONTEXT_RENDER) {
+        switch (obj->oBehParams2ndByte) {
+            case 0:
+                gDPSetPrimColor(dlTail++, 0, 0, 255, 0, 0, 255);
+                gSPEndDisplayList(dlTail);
+                break;
+            case 1:
+                gDPSetPrimColor(dlTail++, 0, 0, 0, 255, 0, 255);
+                gSPEndDisplayList(dlTail);
+                break;
+            case 2:
+                gDPSetPrimColor(dlTail++, 0, 0, 0, 0, 255, 255);
+                gSPEndDisplayList(dlTail);
+                break;
+        }
+    }
+    return dlHead;
+}
+
 /**
  * Increase Mario's hand / foot size when he punches / kicks.
  * Since animation geo nodes only support rotation, this scaling animation

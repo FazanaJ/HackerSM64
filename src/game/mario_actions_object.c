@@ -34,6 +34,8 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
         endAction = ACT_IDLE, crouchEndAction = ACT_CROUCHING;
     }
 
+    gCanPunch = FALSE;
+
     switch (m->actionArg) {
         case ACT_ARG_PUNCH_SEQUENCE_YAH:
             play_sound(SOUND_MARIO_PUNCH_YAH, m->marioObj->header.gfx.cameraToObject);
@@ -66,8 +68,8 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
                 m->flags |= MARIO_PUNCHING;
             }
 
-            if (m->input & INPUT_B_PRESSED) {
-                m->actionArg = ACT_ARG_PUNCH_SEQUENCE_WAH;
+            if (m->input & INPUT_B_PRESSED && gCanPunch) {
+                m->actionArg = ACT_ARG_PUNCH_SEQUENCE_YAH;
             }
 
             if (is_anim_at_end(m)) {
@@ -153,10 +155,6 @@ s32 act_punching(struct MarioState *m) {
         return check_common_action_exits(m);
     }
 
-    if (m->actionState == ACT_STATE_PUNCHING_CAN_JUMP_KICK && (m->input & INPUT_A_DOWN)) {
-        return set_mario_action(m, ACT_JUMP_KICK, 0);
-    }
-
     m->actionState = ACT_STATE_PUNCHING_NO_JUMP_KICK;
     if (m->actionArg == 0) {
         m->actionTimer = 7;
@@ -166,6 +164,8 @@ s32 act_punching(struct MarioState *m) {
     if (m->actionTimer > 0) {
         m->actionTimer--;
     }
+
+    gCanPunch = FALSE;
 
     mario_update_punch_sequence(m);
     perform_ground_step(m);

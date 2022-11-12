@@ -6,6 +6,10 @@
 #include "macros.h"
 #include "types.h"
 
+extern u8 gCanDive;
+extern u8 gCanJump;
+extern u8 gCanPunch;
+
 s32 is_anim_at_end(struct MarioState *m);
 s32 is_anim_past_end(struct MarioState *m);
 s16 set_mario_animation(struct MarioState *m, s32 targetAnimID);

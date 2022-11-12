@@ -438,9 +438,7 @@ s32 act_jump(struct MarioState *m) {
     }
 #endif
 
-    if (check_kick_or_dive_in_air(m)) {
-        return TRUE;
-    }
+    gCanJump = FALSE;
 
     if (m->input & INPUT_Z_PRESSED) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
@@ -734,6 +732,8 @@ s32 act_dive(struct MarioState *m) {
             return TRUE;
         }
     }
+
+    gCanDive = FALSE;
 
     update_air_without_turn(m);
 

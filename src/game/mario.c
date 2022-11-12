@@ -33,6 +33,10 @@
 #include "sound_init.h"
 #include "rumble_init.h"
 
+u8 gCanDive = TRUE;
+u8 gCanJump = TRUE;
+u8 gCanPunch = TRUE;
+
 
 /**************************************************
  *                    ANIMATIONS                  *
@@ -981,43 +985,7 @@ s32 set_jump_from_landing(struct MarioState *m) {
         }
     }
 
-    if (mario_floor_is_steep(m)) {
-        set_steep_jump_action(m);
-    } else {
-        if ((m->doubleJumpTimer == 0) || (m->squishTimer != 0)) {
-            set_mario_action(m, ACT_JUMP, 0);
-        } else {
-            switch (m->prevAction) {
-                case ACT_JUMP_LAND:
-                    set_mario_action(m, ACT_DOUBLE_JUMP, 0);
-                    break;
-
-                case ACT_FREEFALL_LAND:
-                    set_mario_action(m, ACT_DOUBLE_JUMP, 0);
-                    break;
-
-                case ACT_SIDE_FLIP_LAND_STOP:
-                    set_mario_action(m, ACT_DOUBLE_JUMP, 0);
-                    break;
-
-                case ACT_DOUBLE_JUMP_LAND:
-                    // If Mario has a wing cap, he ignores the typical speed
-                    // requirement for a triple jump.
-                    if (m->flags & MARIO_WING_CAP) {
-                        set_mario_action(m, ACT_FLYING_TRIPLE_JUMP, 0);
-                    } else if (m->forwardVel > 20.0f) {
-                        set_mario_action(m, ACT_TRIPLE_JUMP, 0);
-                    } else {
-                        set_mario_action(m, ACT_JUMP, 0);
-                    }
-                    break;
-
-                default:
-                    set_mario_action(m, ACT_JUMP, 0);
-                    break;
-            }
-        }
-    }
+    set_mario_action(m, ACT_JUMP, 0);
 
     m->doubleJumpTimer = 0;
 
@@ -1823,6 +1791,10 @@ void init_mario(void) {
     gMarioState->heldObj = NULL;
     gMarioState->riddenObj = NULL;
     gMarioState->usedObj = NULL;
+
+    gCanJump = TRUE;
+    gCanDive = TRUE;
+    gCanPunch = TRUE;
 
     gMarioState->waterLevel = find_water_level(gMarioSpawnInfo->startPos[0], gMarioSpawnInfo->startPos[2]);
 
