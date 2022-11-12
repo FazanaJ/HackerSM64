@@ -457,11 +457,12 @@ Gfx *geo_switch_mario_hand(s32 callContext, struct GraphNode *node, UNUSED Mat4 
 
 Gfx *get_ak47_colour(s32 callContext, struct GraphNode *node, UNUSED Mat4 *mtx) {
     struct Object *obj = gCurGraphNodeObjectNode;
-    Gfx *dlHead = alloc_display_list(2 * sizeof(*dlHead));
+    Gfx *dlHead = alloc_display_list(4 * sizeof(*dlHead));
     Gfx *dlTail = dlHead;
 
     if (callContext == GEO_CONTEXT_RENDER) {
-        switch (obj->oBehParams2ndByte) {
+    print_text_fmt_int(128, 128, "%d", obj->oBehParams2ndByte);
+        switch (obj->oBehParams2ndByte & 0xFF) {
             case 0:
                 gDPSetPrimColor(dlTail++, 0, 0, 255, 0, 0, 255);
                 gSPEndDisplayList(dlTail);
