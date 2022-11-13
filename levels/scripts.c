@@ -112,7 +112,9 @@ const LevelScript level_main_scripts_entry[] = {
 #ifdef IA8_30FPS_COINS
     LOAD_MODEL_FROM_GEO(MODEL_SILVER_COIN,             silver_coin_geo),
     LOAD_MODEL_FROM_GEO(MODEL_SILVER_COIN_NO_SHADOW,   silver_coin_no_shadow_geo),
-    LOAD_MODEL_FROM_GEO(MODEL_AK47,      ak47_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_AK47_RED,      ak47_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_AK47_GREEN,      ak47_geo2),
+    LOAD_MODEL_FROM_GEO(MODEL_AK47_BLUE,      ak47_geo3),
 #endif
     FREE_LEVEL_POOL(),
     POP_POOL(),

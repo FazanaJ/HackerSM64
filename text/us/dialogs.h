@@ -20,7 +20,7 @@ If you're stuck, pause\n\
 the game, and select\n\
 'Restart' to try again."))
 
-DEFINE_DIALOG(DIALOG_001, 1, 4, 95, 200, _("\
+DEFINE_DIALOG(DIALOG_001, 1, 5, 95, 200, _("\
 Collect the AK47's to\n\
 restore your energy.\n\
 \n\

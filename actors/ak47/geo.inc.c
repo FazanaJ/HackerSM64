@@ -3,10 +3,23 @@
 const GeoLayout ak47_geo[] = {
 	GEO_NODE_START(),
 	GEO_OPEN_NODE(),
-		GEO_ASM(LAYER_OPAQUE, get_ak47_colour),
-		GEO_OPEN_NODE(),
-			GEO_DISPLAY_LIST(LAYER_OPAQUE, ak47_Bone_001_mesh_layer_1),
-		GEO_CLOSE_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ak47_Bone_001_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_END(),
+};
+
+const GeoLayout ak47_geo2[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ak47_Bone_001_mesh_layer_2),
+	GEO_CLOSE_NODE(),
+	GEO_END(),
+};
+
+const GeoLayout ak47_geo3[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ak47_Bone_001_mesh_layer_3),
 	GEO_CLOSE_NODE(),
 	GEO_END(),
 };

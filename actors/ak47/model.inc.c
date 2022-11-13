@@ -460,6 +460,24 @@ Gfx ak47_material_revert_render_settings[] = {
 
 Gfx ak47_Bone_001_mesh_layer_1[] = {
 	gsSPDisplayList(mat_ak47_Pickup),
+	gsDPSetPrimColor(0, 0, 255, 0, 0, 255),
+	gsSPDisplayList(ak47_Bone_001_mesh_layer_1_tri_0),
+	gsSPDisplayList(ak47_material_revert_render_settings),
+	gsSPEndDisplayList(),
+};
+
+
+Gfx ak47_Bone_001_mesh_layer_2[] = {
+	gsSPDisplayList(mat_ak47_Pickup),
+	gsDPSetPrimColor(0, 0, 0, 255, 0, 255),
+	gsSPDisplayList(ak47_Bone_001_mesh_layer_1_tri_0),
+	gsSPDisplayList(ak47_material_revert_render_settings),
+	gsSPEndDisplayList(),
+};
+
+Gfx ak47_Bone_001_mesh_layer_3[] = {
+	gsSPDisplayList(mat_ak47_Pickup),
+	gsDPSetPrimColor(0, 0, 0, 0, 255, 255),
 	gsSPDisplayList(ak47_Bone_001_mesh_layer_1_tri_0),
 	gsSPDisplayList(ak47_material_revert_render_settings),
 	gsSPEndDisplayList(),

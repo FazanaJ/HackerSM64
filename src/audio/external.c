@@ -2145,6 +2145,7 @@ void set_sound_moving_speed(u8 bank, u8 speed) {
  */
 void play_dialog_sound(u8 dialogID) {
     u8 speaker;
+    return;
 
     if (dialogID >= DIALOG_COUNT) {
         dialogID = 0;

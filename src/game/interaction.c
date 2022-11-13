@@ -728,18 +728,14 @@ void reset_mario_pitch(struct MarioState *m) {
 }
 
 u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *obj) {
-    s32 param = obj->oBehParams2ndByte;
+    s32 param = obj->header.gfx.sharedChild;
 
-    switch (param) {
-        case 0:
-            gCanJump = TRUE;
-            break;
-        case 1:
-            gCanPunch = TRUE;
-            break;
-        case 2:
-            gCanDive = TRUE;
-            break;
+    if (param == gLoadedGraphNodes[MODEL_AK47_RED]) {
+        gCanJump = TRUE;
+    } else if (param == gLoadedGraphNodes[MODEL_AK47_GREEN]) {
+        gCanPunch = TRUE;
+    } else {
+        gCanDive = TRUE;
     }
 
     mark_obj_for_deletion(obj);

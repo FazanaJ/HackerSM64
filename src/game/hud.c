@@ -557,14 +557,35 @@ void render_hud(void) {
             render_hud_timer();
         }
 
-        char textBytes[16];
+        u8 alpha;
 
-        sprintf(textBytes, "Jump: %d", gCanJump);
-        print_small_text_light(32,32,textBytes, PRINT_TEXT_ALIGN_LEFT, PRINT_ALL, FONT_OUTLINE);
-        sprintf(textBytes, "Punch: %d", gCanPunch);
-        print_small_text_light(32,48,textBytes, PRINT_TEXT_ALIGN_LEFT, PRINT_ALL, FONT_OUTLINE);
-        sprintf(textBytes, "Dive: %d", gCanDive);
-        print_small_text_light(32,64,textBytes, PRINT_TEXT_ALIGN_LEFT, PRINT_ALL, FONT_OUTLINE);
+        if (gCanJump) {
+            alpha = 192;
+        } else {
+            alpha = 64;
+        }
+        prepare_blank_box();
+        render_blank_box_rounded(32,32,72,48, 255, 0, 0, alpha);
+        print_set_envcolour(255, 255, 255, alpha);
+        print_small_text_light(52,34, "Jump", PRINT_TEXT_ALIGN_CENTRE, PRINT_ALL, FONT_PLAIN);
+        if (gCanPunch) {
+            alpha = 192;
+        } else {
+            alpha = 64;
+        }
+        prepare_blank_box();
+        render_blank_box_rounded(32,52,72,68, 0, 255, 0, alpha);
+        print_set_envcolour(255, 255, 255, alpha);
+        print_small_text_light(52,54, "Punch", PRINT_TEXT_ALIGN_CENTRE, PRINT_ALL, FONT_PLAIN);
+        if (gCanDive) {
+            alpha = 192;
+        } else {
+            alpha = 64;
+        }
+        prepare_blank_box();
+        render_blank_box_rounded(32,72,72,88, 0, 0, 255, alpha);
+        print_set_envcolour(255, 255, 255, alpha);
+        print_small_text_light(52,74, "Dive", PRINT_TEXT_ALIGN_CENTRE, PRINT_ALL, FONT_PLAIN);
 
 #ifdef VANILLA_STYLE_CUSTOM_DEBUG
         if (gCustomDebugMode) {

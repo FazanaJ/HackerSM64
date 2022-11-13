@@ -592,15 +592,7 @@ s16 music_unchanged_through_warp(s16 arg) {
  * Set the current warp type and destination level/area/node.
  */
 void initiate_warp(s16 destLevel, s16 destArea, s16 destWarpNode, s32 warpFlags) {
-    if (destWarpNode >= WARP_NODE_CREDITS_MIN) {
-        sWarpDest.type = WARP_TYPE_CHANGE_LEVEL;
-    } else if (destLevel != gCurrLevelNum) {
-        sWarpDest.type = WARP_TYPE_CHANGE_LEVEL;
-    } else if (destArea != gCurrentArea->index) {
-        sWarpDest.type = WARP_TYPE_CHANGE_AREA;
-    } else {
-        sWarpDest.type = WARP_TYPE_SAME_AREA;
-    }
+    sWarpDest.type = WARP_TYPE_CHANGE_LEVEL;
 
     sWarpDest.levelNum = destLevel;
     sWarpDest.areaIdx = destArea;
@@ -1054,7 +1046,7 @@ s32 play_mode_paused(void) {
         if (gDebugLevelSelect) {
             fade_into_special_warp(WARP_SPECIAL_LEVEL_SELECT, 1);
         } else {
-            initiate_warp(EXIT_COURSE_LEVEL, EXIT_COURSE_AREA, EXIT_COURSE_NODE, WARP_FLAGS_NONE);
+            initiate_warp(gCurrLevelNum, gCurrAreaIndex, 0x0A, WARP_FLAGS_NONE);
             fade_into_special_warp(WARP_SPECIAL_NONE, 0);
             gSavedCourseNum = COURSE_NONE;
         }
