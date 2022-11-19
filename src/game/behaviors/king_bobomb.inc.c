@@ -26,7 +26,7 @@ void king_bobomb_act_inactive(void) { // act 0
         gSecondCameraFocus = o;
         cur_obj_init_animation_with_sound(KING_BOBOMB_ANIM_IDLE);
         cur_obj_set_pos_to_home();
-        o->oHealth = 3;
+        o->oHealth = 4;
 
         if (cur_obj_can_mario_activate_textbox_2(500.0f, 100.0f)) {
             o->oSubAction++;
@@ -45,11 +45,6 @@ s32 mario_is_far_below_object(f32 min) {
 
 void king_bobomb_act_active(void) { // act 2
     cur_obj_become_tangible();
-
-    if (o->oPosY - o->oHomeY < -100.0f) { // Thrown off hill
-        o->oAction = KING_BOBOMB_ACT_RETURN_HOME;
-        cur_obj_become_intangible();
-    }
 
     if (o->oKingBobombShouldStomp == 0) {
         if (cur_obj_check_anim_frame(15)) {
@@ -203,7 +198,7 @@ void king_bobomb_act_death(void) { // act 7
         spawn_triangle_break_particles(20, MODEL_DIRT_ANIMATION, 3.0f, TINY_DIRT_PARTICLE_ANIM_STATE_YELLOW);
         cur_obj_shake_screen(SHAKE_POS_SMALL);
 
-        cur_obj_spawn_star_at_y_offset(2000.0f, 4500.0f, -4500.0f, 200.0f);
+        cur_obj_spawn_star_at_y_offset(600.0f, 700.0f, 15.0f, 50.0f);
 
         o->oAction = KING_BOBOMB_ACT_STOP_MUSIC;
     }

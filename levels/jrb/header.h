@@ -63,4 +63,7 @@ extern const struct MovtexQuadCollection jrb_movtex_sunken_ship_water[];
 // script
 extern const LevelScript level_jrb_entry[];
 
+
+#include "levels/jrb/header.inc.h"
+
 #endif

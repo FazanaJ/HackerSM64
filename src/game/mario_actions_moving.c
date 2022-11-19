@@ -871,10 +871,6 @@ s32 act_hold_walking(struct MarioState *m) {
         return set_mario_action(m, ACT_HOLD_DECELERATING, 0);
     }
 
-    if (m->input & INPUT_Z_PRESSED) {
-        return drop_and_set_mario_action(m, ACT_CROUCH_SLIDE, 0);
-    }
-
     m->intendedMag *= 0.4f;
 
     update_walking_speed(m);
@@ -939,7 +935,7 @@ s32 act_turning_around(struct MarioState *m) {
     }
 
     if (m->input & INPUT_A_PRESSED) {
-        return set_jumping_action(m, ACT_SIDE_FLIP, 0);
+        return set_jumping_action(m, ACT_JUMP, 0);
     }
 
     if (m->input & INPUT_IDLE) {
@@ -990,7 +986,7 @@ s32 act_finish_turning_around(struct MarioState *m) {
     }
 
     if (m->input & INPUT_A_PRESSED) {
-        return set_jumping_action(m, ACT_SIDE_FLIP, 0);
+        return set_jumping_action(m, ACT_JUMP, 0);
     }
 
 #ifdef RESET_DIRECTION_WHEN_TURNING_AROUND
@@ -1076,10 +1072,6 @@ s32 act_decelerating(struct MarioState *m) {
 
         if (m->input & INPUT_NONZERO_ANALOG) {
             return set_mario_action(m, ACT_WALKING, 0);
-        }
-
-        if (m->input & INPUT_Z_PRESSED) {
-            return set_mario_action(m, ACT_CROUCH_SLIDE, 0);
         }
     }
 

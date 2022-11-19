@@ -1198,8 +1198,6 @@ void update_mario_button_inputs(struct MarioState *m) {
     if (m->squishTimer == 0) {
         if (m->controller->buttonDown    & B_BUTTON) m->input |= INPUT_B_DOWN;
         if (m->controller->buttonPressed & B_BUTTON) m->input |= INPUT_B_PRESSED;
-        if (m->controller->buttonDown    & Z_TRIG  ) m->input |= INPUT_Z_DOWN;
-        if (m->controller->buttonPressed & Z_TRIG  ) m->input |= INPUT_Z_PRESSED;
     }
 
     if (m->input & INPUT_A_PRESSED) {

@@ -728,7 +728,7 @@ void reset_mario_pitch(struct MarioState *m) {
 }
 
 u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *obj) {
-    s32 param = obj->header.gfx.sharedChild;
+    struct GraphNode *param = obj->header.gfx.sharedChild;
 
     if (param == gLoadedGraphNodes[MODEL_AK47_RED]) {
         gCanJump = TRUE;
@@ -737,6 +737,8 @@ u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *
     } else {
         gCanDive = TRUE;
     }
+
+    play_sound(SOUND_MENU_STAR_SOUND, gGlobalSoundSource);
 
     mark_obj_for_deletion(obj);
 
