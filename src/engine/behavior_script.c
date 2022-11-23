@@ -15,6 +15,8 @@
 #include "graph_node.h"
 #include "surface_collision.h"
 #include "game/puppylights.h"
+#include "game/main.h"
+#include "game/level_update.h"
 
 // Macros for retrieving arguments from behavior scripts.
 #define BHV_CMD_GET_1ST_U8(index)  (u8)((gCurBhvCommand[index] >> 24) & 0xFF) // unused
@@ -819,6 +821,20 @@ void cur_obj_update(void) {
     f32 distanceFromMario;
     BhvCommandProc bhvCmdProc;
     s32 bhvProcResult;
+    struct Object *prevMario = gMarioObject;
+
+    if (gMarioStates[0].marioObj && (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO || objFlags & OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO)) {
+        f32 bestDist = 0xFFFFFFFF;
+        for (u32 i = 0; i < gNumPlayers; i++) {
+            f32 dist =  (sqr(o->oPosX - gMarioStates[i].marioObj->oPosX)) + 
+                        (sqr(o->oPosY - gMarioStates[i].marioObj->oPosY)) +
+                        (sqr(o->oPosZ - gMarioStates[i].marioObj->oPosZ));
+            if (dist < bestDist) {
+                bestDist = dist;
+                gMarioObject = gMarioStates[i].marioObj;
+            }
+        }
+    }
 
     // Calculate the distance from the object to Mario.
     if (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO) {
@@ -943,4 +959,5 @@ void cur_obj_update(void) {
             o->activeFlags &= ~ACTIVE_FLAG_FAR_AWAY;
         }
     }
+    gMarioObject = prevMario;
 }
