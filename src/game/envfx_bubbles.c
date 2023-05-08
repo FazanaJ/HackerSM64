@@ -71,6 +71,8 @@ s32 random_flower_offset(void) {
 void envfx_update_flower(Vec3s centerPos) {
     s32 i;
     s32 globalTimer = gGlobalTimer;
+    struct Surface *surf;
+    s32 floorY;
 
     s16 centerX = centerPos[0];
     s16 centerZ = centerPos[2];
@@ -80,7 +82,43 @@ void envfx_update_flower(Vec3s centerPos) {
         if (!(gEnvFxBuffer + i)->isAlive) {
             (gEnvFxBuffer + i)->xPos = random_flower_offset() + centerX;
             (gEnvFxBuffer + i)->zPos = random_flower_offset() + centerZ;
-            (gEnvFxBuffer + i)->yPos = find_floor_height((gEnvFxBuffer + i)->xPos, 10000.0f, (gEnvFxBuffer + i)->zPos);
+            floorY = find_floor((gEnvFxBuffer + i)->xPos, centerPos[1], (gEnvFxBuffer + i)->zPos, &surf);
+            if (surf && surf->type == SURFACE_HANGABLE) {
+                (gEnvFxBuffer + i)->yPos = floorY;
+            } else {
+                (gEnvFxBuffer + i)->yPos = FLOOR_LOWER_LIMIT_MISC;
+            }
+            (gEnvFxBuffer + i)->isAlive = TRUE;
+            (gEnvFxBuffer + i)->animFrame = random_float() * 5.0f;
+        } else if (!(globalTimer & 3)) {
+            (gEnvFxBuffer + i)->animFrame++;
+            if ((gEnvFxBuffer + i)->animFrame > 5) {
+                (gEnvFxBuffer + i)->animFrame = 0;
+            }
+        }
+    }
+}
+
+void envfx_update_grass(Vec3s centerPos) {
+    s32 i;
+    s32 globalTimer = gGlobalTimer;
+    struct Surface *surf;
+    s32 floorY;
+
+    s16 centerX = centerPos[0];
+    s16 centerZ = centerPos[2];
+
+    for (i = 0; i < sBubbleParticleMaxCount; i++) {
+        (gEnvFxBuffer + i)->isAlive = particle_is_laterally_close(i, centerX, centerZ, 3000);
+        if (!(gEnvFxBuffer + i)->isAlive) {
+            (gEnvFxBuffer + i)->xPos = random_flower_offset() + centerX;
+            (gEnvFxBuffer + i)->zPos = random_flower_offset() + centerZ;
+            floorY = find_floor((gEnvFxBuffer + i)->xPos, centerPos[1], (gEnvFxBuffer + i)->zPos, &surf);
+            if (surf && surf->type == SURFACE_HANGABLE) {
+                (gEnvFxBuffer + i)->yPos = floorY;
+            } else {
+                (gEnvFxBuffer + i)->yPos = FLOOR_LOWER_LIMIT_MISC;
+            }
             (gEnvFxBuffer + i)->isAlive = TRUE;
             (gEnvFxBuffer + i)->animFrame = random_float() * 5.0f;
         } else if (!(globalTimer & 3)) {
@@ -308,6 +346,10 @@ s32 envfx_init_bubble(s32 mode) {
             sBubbleParticleCount = 30;
             sBubbleParticleMaxCount = 30;
             break;
+        case ENVFX_GRASS:
+            sBubbleParticleCount = 75;
+            sBubbleParticleMaxCount = 75;
+            break;
 
         case ENVFX_LAVA_BUBBLES:
             sBubbleParticleCount = 15;
@@ -353,6 +395,14 @@ void envfx_bubbles_update_switch(s32 mode, Vec3s camTo, Vec3s vertex1, Vec3s ver
     switch (mode) {
         case ENVFX_FLOWERS:
             envfx_update_flower(camTo);
+            vertex1[0] = 50;  vertex1[1] = 0;  vertex1[2] = 0;
+            vertex2[0] = 0;   vertex2[1] = 75; vertex2[2] = 0;
+            vertex3[0] = -50; vertex3[1] = 0;  vertex3[2] = 0;
+            break;
+
+            
+        case ENVFX_GRASS:
+            envfx_update_grass(camTo);
             vertex1[0] = 50;  vertex1[1] = 0;  vertex1[2] = 0;
             vertex2[0] = 0;   vertex2[1] = 75; vertex2[2] = 0;
             vertex3[0] = -50; vertex3[1] = 0;  vertex3[2] = 0;
@@ -427,6 +477,11 @@ void envfx_set_bubble_texture(s32 mode, s16 index) {
     switch (mode) {
         case ENVFX_FLOWERS:
             imageArr = segmented_to_virtual(&flower_bubbles_textures_ptr_0B002008);
+            frame = (gEnvFxBuffer + index)->animFrame;
+            break;
+
+        case ENVFX_GRASS:
+            imageArr = segmented_to_virtual(&grass_ptr);
             frame = (gEnvFxBuffer + index)->animFrame;
             break;
 
@@ -527,6 +582,10 @@ Gfx *envfx_update_bubbles(s32 mode, Vec3s marioPos, Vec3s camTo, Vec3s camFrom) 
     switch (mode) {
         case ENVFX_FLOWERS:
             gfx = envfx_update_bubble_particles(ENVFX_FLOWERS, marioPos, camFrom, camTo);
+            break;
+        
+        case ENVFX_GRASS:
+            gfx = envfx_update_bubble_particles(ENVFX_GRASS, marioPos, camFrom, camTo);
             break;
 
         case ENVFX_LAVA_BUBBLES:

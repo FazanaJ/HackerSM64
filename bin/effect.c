@@ -29,6 +29,34 @@ ALIGNED8 static const Texture effect_0B001808[] = {
 #include "textures/effect/flower.01808.rgba16.inc.c"
 };
 
+ALIGNED8 static const Texture grass_01[] = {
+#include "textures/effect/custom_grass_01.rgba16.inc.c"
+};
+
+// 0x0B000808
+ALIGNED8 static const Texture grass_02[] = {
+#include "textures/effect/custom_grass_02.rgba16.inc.c"
+};
+
+// 0x0B001008
+ALIGNED8 static const Texture grass_03[] = {
+#include "textures/effect/custom_grass_03.rgba16.inc.c"
+};
+
+// 0x0B001808
+ALIGNED8 static const Texture grass_04[] = {
+#include "textures/effect/custom_grass_04.rgba16.inc.c"
+};
+
+const Texture *const grass_ptr[] = {
+    grass_01,
+    grass_02,
+    grass_03,
+    grass_04,
+    grass_03,
+    grass_02,
+};
+
 // 0x0B002008
 const Texture *const flower_bubbles_textures_ptr_0B002008[] = {
     effect_0B000008,
