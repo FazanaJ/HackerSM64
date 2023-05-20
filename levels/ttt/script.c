@@ -11,6 +11,7 @@
 
 #include "levels/scripts.h"
 
+
 /* Fast64 begin persistent block [includes] */
 Vtx treeBase2[252];
 Vtx treeBase3[511];
@@ -118,6 +119,7 @@ const LevelScript level_ttt_entry[] = {
 		OBJECT(MODEL_STAR, -2500, 1846, -480, 0, -39, 0, (3 << 16), bhvStar),
 		OBJECT(MODEL_STAR, -5248, 1783, 3382, 0, -39, 0, (0 << 16), bhvStar),
 		TERRAIN(ttt_area_1_collision),
+		ROOMS(ttt_area_1_collision_rooms),
 		MACRO_OBJECTS(ttt_area_1_macro_objs),
 		SET_BACKGROUND_MUSIC(0x00, SEQ_LEVEL_WATER),
 		TERRAIN_TYPE(TERRAIN_SAND),

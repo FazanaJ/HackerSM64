@@ -3,21 +3,37 @@
 const GeoLayout ttt_area_1_geo[] = {
 	GEO_NODE_START(),
 	GEO_OPEN_NODE(),
-		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_ALPHA, -3694, 47, 2265, 97, -30, -24, ttt_dl_3D_Grass_mesh_layer_4),
-		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, -3158, 0, 2276, ttt_dl_Big_Tree_mesh_layer_1),
+		GEO_SWITCH_CASE(16, geo_switch_area),
 		GEO_OPEN_NODE(),
-			GEO_DISPLAY_LIST(LAYER_ALPHA, ttt_dl_Big_Tree_mesh_layer_4),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_1_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_10_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_11_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_12_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_13_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_14_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_2_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_3_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_4_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_5_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_6_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_7_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_8_geo),
+			GEO_BRANCH(1, ttt_dl_Area_1_Room_9_geo),
+			GEO_BRANCH(1, ttt_dl_Ceiling_Fan_geo),
 		GEO_CLOSE_NODE(),
-		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, 0, 165, -5946, ttt_dl_Boat_mesh_layer_1),
-		GEO_TRANSLATE_NODE_WITH_DL(LAYER_ALPHA, -2886, 35, 2169, ttt_dl_Bushes_mesh_layer_4),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Circle_003_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_1_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
 		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Cage_mesh_layer_1),
-		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, 0, 14300, 0, ttt_dl_Ceiling_Fan_mesh_layer_1),
 		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Ceiling_Light_mesh_layer_1),
 		GEO_DISPLAY_LIST(LAYER_TRANSPARENT, ttt_dl_Ceiling_Light_mesh_layer_5),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, -784, -2056, -2835, 13, 4, -2, ttt_dl_Chest_mesh_layer_1),
 		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Circle_mesh_layer_1),
 		GEO_DISPLAY_LIST(LAYER_TRANSPARENT, ttt_dl_Circle_mesh_layer_5),
-		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Circle_003_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE(LAYER_OPAQUE, 0, 162, 0, 0, 90, 0),
 		GEO_OPEN_NODE(),
 			GEO_SCALE_WITH_DL(LAYER_OPAQUE, 69727, ttt_dl_Circle_004_mesh_layer_1),
@@ -58,17 +74,116 @@ const GeoLayout ttt_area_1_geo[] = {
 			GEO_CLOSE_NODE(),
 		GEO_CLOSE_NODE(),
 		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, 96, -1733, -4430, ttt_dl_Circle_033_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_10_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_11_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_12_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_13_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_14_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_2_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Sand_Sector_mesh_layer_1),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Sand_Sector_002_mesh_layer_1),
+		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, -2509, 1699, -361, 0, 94, 0, ttt_dl_Small_sandy_rocks_088_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_3_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Boat_mesh_layer_1),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Ocean_Top_mesh_layer_1),
+		GEO_DISPLAY_LIST(LAYER_TRANSPARENT, ttt_dl_Ocean_Water_mesh_layer_5),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Underwater_Shit_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_4_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Ocean_Bottom_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_5_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Volcano_Sector_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_6_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Small_Snowy_Rocks_130_mesh_layer_1),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Snow_Sector_mesh_layer_1),
+		GEO_DISPLAY_LIST(LAYER_ALPHA, ttt_dl_Snow_Sector_mesh_layer_4),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_7_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Cave_Sector_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_8_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_ALPHA, -3694, 47, 2265, 97, -30, -24, ttt_dl_3D_Grass_mesh_layer_4),
+		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, -3158, 0, 2276, ttt_dl_Big_Tree_mesh_layer_1),
+		GEO_OPEN_NODE(),
+			GEO_DISPLAY_LIST(LAYER_ALPHA, ttt_dl_Big_Tree_mesh_layer_4),
+		GEO_CLOSE_NODE(),
+		GEO_TRANSLATE_NODE_WITH_DL(LAYER_ALPHA, -2886, 35, 2169, ttt_dl_Bushes_mesh_layer_4),
 		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Forest_Sector_mesh_layer_1),
 		GEO_DISPLAY_LIST(LAYER_TRANSPARENT, ttt_dl_Forest_Sector_001_mesh_layer_5),
-		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, 127, 90, 1095, ttt_dl_Icosphere_mesh_layer_1),
-		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Ocean_Sector_mesh_layer_1),
-		GEO_DISPLAY_LIST(LAYER_TRANSPARENT, ttt_dl_Ocean_Water_mesh_layer_5),
-		GEO_DISPLAY_LIST(LAYER_OPAQUE, ttt_dl_Sand_Sector_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, -5234, -33, 3352, 0, -98, 0, ttt_dl_tree_003_mesh_layer_1),
 		GEO_OPEN_NODE(),
 			GEO_DISPLAY_LIST(LAYER_ALPHA, ttt_dl_tree_003_mesh_layer_4),
 		GEO_CLOSE_NODE(),
-		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 1673, -1896, -4487, -24, -94, -34, ttt_dl_Underwater_Shit_mesh_layer_1),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Area_1_Room_9_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+	GEO_CLOSE_NODE(),
+	GEO_RETURN(),
+};
+const GeoLayout ttt_dl_Ceiling_Fan_geo[] = {
+	GEO_NODE_START(),
+	GEO_OPEN_NODE(),
+		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 0, 14251, 0, 0, 22, 0, ttt_dl_Ceiling_Fan_mesh_layer_1),
 	GEO_CLOSE_NODE(),
 	GEO_RETURN(),
 };
