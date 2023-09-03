@@ -77,6 +77,10 @@ f32 gCurrAnimTranslationMultiplier;
 u16 *gCurrAnimAttribute;
 s16 *gCurrAnimData;
 
+s32 gCurrAnimPos = 0;
+s32 gSkipLerp = FALSE;
+struct AnimInfo gMarioGfxAnim;
+
 struct AllocOnlyPool *gDisplayListHeap;
 
 /* Rendermode settings for cycle 1 for all 8 or 13 layers. */
@@ -159,6 +163,7 @@ ALIGNED16 struct GraphNodePerspective *gCurGraphNodeCamFrustum = NULL;
 ALIGNED16 struct GraphNodeCamera *gCurGraphNodeCamera = NULL;
 ALIGNED16 struct GraphNodeObject *gCurGraphNodeObject = NULL;
 ALIGNED16 struct GraphNodeHeldObject *gCurGraphNodeHeldObject = NULL;
+ALIGNED16 struct GraphNodeCamera *gTargetCam = NULL;
 u16 gAreaUpdateCounter = 0;
 LookAt* gCurLookAt;
 
@@ -674,6 +679,14 @@ void setup_global_light() {
     gSPSetLights1(gDisplayListHead++, (*curLight));
 }
 
+void update_graph_node_camera(struct GraphNodeCamera *gc) {
+
+    gc->rollScreen = gLakituState.roll;
+    vec3f_copy(gc->pos, gLakituState.pos);
+    vec3f_copy(gc->focus, gLakituState.focus);
+    zoom_out_if_paused_and_outside(gc);
+}
+
 /**
  * Process a camera node.
  */
@@ -935,17 +948,73 @@ void geo_process_animated_part(struct GraphNodeAnimatedPart *node) {
     append_dl_and_return(((struct GraphNodeDisplayList *)node));
 }
 
+s32 load_patchable_table_render(struct DmaHandlerList *list, s32 index) {
+    s32 ret = FALSE;
+    struct DmaTable *table = list->dmaTable;
+
+    if ((u32)index < table->count) {
+        u8 *addr = table->srcAddr + table->anim[index].offset;
+        s32 size = table->anim[index].size;
+
+        if (list->currentAddr != addr) {
+            dma_read(list->bufTarget, addr, addr + size);
+            list->currentAddr = addr;
+            ret = TRUE;
+        }
+    }
+    return ret;
+}
+
+void load_mario_anim_gfx(void) {
+    s32 targetAnimID = gMarioState->marioObj->header.gfx.animInfo.animID;
+    struct Animation *targetAnim = gMarioDrawAnimsBuf.bufTarget;
+
+    if (load_patchable_table_render(&gMarioDrawAnimsBuf, targetAnimID)) {
+        targetAnim->values = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
+        targetAnim->index = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
+    }
+
+    if (gMarioGfxAnim.animID != targetAnimID) {
+        gMarioGfxAnim.animID = targetAnimID;
+        gMarioGfxAnim.curAnim = targetAnim;
+        gMarioGfxAnim.animAccel = 0;
+        gMarioGfxAnim.animYTrans = gMarioState->animYTrans;
+    }
+        
+        if (gMarioState->marioObj->header.gfx.animInfo.animAccel == 0) {
+            gMarioGfxAnim.animFrame = gMarioState->marioObj->header.gfx.animInfo.animFrame;
+        } else {
+            gMarioGfxAnim.animFrameAccelAssist = gMarioState->marioObj->header.gfx.animInfo.animFrameAccelAssist;
+            gMarioGfxAnim.animFrame = gMarioState->marioObj->header.gfx.animInfo.animFrame;
+        }
+    if (gMarioState->marioObj->header.gfx.animInfo.animAccel != 0) {
+        gMarioGfxAnim.animAccel = gMarioState->marioObj->header.gfx.animInfo.animAccel;
+    }
+}
+
 /**
  * Initialize the animation-related global variables for the currently drawn
  * object's animation.
  */
-void geo_set_animation_globals(struct AnimInfo *node, s32 hasAnimation) {
-    struct Animation *anim = node->curAnim;
+void geo_set_animation_globals(struct AnimInfo *node, struct Object *obj) {
+    struct AnimInfo *tempNode;
+    struct Animation *anim;
 
-    if (hasAnimation) {
-        node->animFrame = geo_update_animation_frame(node, &node->animFrameAccelAssist);
+    if (obj == gMarioState->marioObj) {
+        load_mario_anim_gfx();
+        tempNode = &gMarioGfxAnim;
+        gSkipLerp = FALSE;
+    } else {
+        tempNode = node;
+        if (obj->oDistanceToMario > 1000.0f) {
+            gSkipLerp = TRUE;
+        } else {
+            gSkipLerp = FALSE;
+        }
     }
-    node->animTimer = gAreaUpdateCounter;
+    anim = tempNode->curAnim;
+
+    tempNode->animTimer = gAreaUpdateCounter;
     if (anim->flags & ANIM_FLAG_HOR_TRANS) {
         gCurrAnimType = ANIM_TYPE_VERTICAL_TRANSLATION;
     } else if (anim->flags & ANIM_FLAG_VERT_TRANS) {
@@ -956,15 +1025,16 @@ void geo_set_animation_globals(struct AnimInfo *node, s32 hasAnimation) {
         gCurrAnimType = ANIM_TYPE_TRANSLATION;
     }
 
-    gCurrAnimFrame = node->animFrame;
+    gCurrAnimFrame = tempNode->animFrame;
     gCurrAnimEnabled = (anim->flags & ANIM_FLAG_DISABLED) == 0;
     gCurrAnimAttribute = segmented_to_virtual((void *) anim->index);
     gCurrAnimData = segmented_to_virtual((void *) anim->values);
+    gCurrAnimPos = 0;
 
     if (anim->animYTransDivisor == 0) {
         gCurrAnimTranslationMultiplier = 1.0f;
     } else {
-        gCurrAnimTranslationMultiplier = (f32) node->animYTrans / (f32) anim->animYTransDivisor;
+        gCurrAnimTranslationMultiplier = (f32) tempNode->animYTrans / (f32) anim->animYTransDivisor;
     }
 }
 
@@ -1149,6 +1219,7 @@ void geo_process_object(struct Object *node) {
     if (node->header.gfx.areaIndex == gCurGraphNodeRoot->areaIndex) {
         s32 isInvisible = (node->header.gfx.node.flags & GRAPH_RENDER_INVISIBLE);
         s32 noThrowMatrix = (node->header.gfx.throwMatrix == NULL);
+        noThrowMatrix = TRUE;
 
         // If the throw matrix is null and the object is invisible, there is no need
         // to update billboarding, scale, rotation, etc. 
@@ -1173,7 +1244,7 @@ void geo_process_object(struct Object *node) {
 
         // FIXME: correct types
         if (node->header.gfx.animInfo.curAnim != NULL) {
-            geo_set_animation_globals(&node->header.gfx.animInfo, (node->header.gfx.node.flags & GRAPH_RENDER_HAS_ANIMATION) != 0);
+            geo_set_animation_globals(&node->header.gfx.animInfo, node);
         }
 
         if (!isInvisible && obj_is_in_view(&node->header.gfx)) {
@@ -1256,7 +1327,7 @@ void geo_process_held_object(struct GraphNodeHeldObject *node) {
         gCurrAnimType = ANIM_TYPE_NONE;
         gCurGraphNodeHeldObject = (void *) node;
         if (node->objNode->header.gfx.animInfo.curAnim != NULL) {
-            geo_set_animation_globals(&node->objNode->header.gfx.animInfo, (node->objNode->header.gfx.node.flags & GRAPH_RENDER_HAS_ANIMATION) != 0);
+            geo_set_animation_globals(&node->objNode->header.gfx.animInfo, node->objNode);
         }
 
         geo_process_node_and_siblings(node->objNode->header.gfx.sharedChild);

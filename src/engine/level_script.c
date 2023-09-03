@@ -30,6 +30,7 @@
 #include "game/puppyprint.h"
 #include "game/puppylights.h"
 #include "game/emutest.h"
+#include "game/rendering_graph_node.h"
 
 #include "config.h"
 
@@ -368,6 +369,7 @@ static void level_cmd_clear_level(void) {
     // the game does a push on level load and a pop on level unload, we need to add another push to store state after the level has been loaded, so one more pop is needed
     main_pool_pop_state();
     unmap_tlbs();
+    gTargetCam = NULL;
 
     sCurrentCmd = CMD_NEXT;
 }
@@ -992,11 +994,6 @@ struct LevelCommand *level_script_execute(struct LevelCommand *cmd) {
     while (sScriptStatus == SCRIPT_RUNNING) {
         LevelScriptJumpTable[sCurrentCmd->type]();
     }
-
-    init_rcp(CLEAR_ZBUFFER);
-    render_game();
-    end_master_display_list();
-    alloc_display_list(0);
 
     return sCurrentCmd;
 }

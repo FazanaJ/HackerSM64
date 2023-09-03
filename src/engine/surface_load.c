@@ -40,12 +40,14 @@ u8 sClearAllCells;
  */
 void *gCurrStaticSurfacePool;
 void *gDynamicSurfacePool;
+void *gDynamicSurfaceNodePool;
 
 /**
  * The end of the data currently allocated to the surface pools.
  */
 void *gCurrStaticSurfacePoolEnd;
 void *gDynamicSurfacePoolEnd;
+void *gDynamicSurfaceNodePoolEnd;
 
 /**
  * The amount of data currently allocated to static surfaces.
@@ -56,7 +58,7 @@ u32 gTotalStaticSurfaceData;
  * Allocate the part of the surface node pool to contain a surface node.
  */
 static struct SurfaceNode *alloc_surface_node(u32 dynamic) {
-    struct SurfaceNode **poolEnd = (struct SurfaceNode **)(dynamic ? &gDynamicSurfacePoolEnd : &gCurrStaticSurfacePoolEnd);
+    struct SurfaceNode **poolEnd = (struct SurfaceNode **)(dynamic ? &gDynamicSurfaceNodePoolEnd : &gCurrStaticSurfacePoolEnd);
 
     struct SurfaceNode *node = *poolEnd;
     (*poolEnd)++;
@@ -429,7 +431,10 @@ static void load_environmental_regions(TerrainData **data) {
  * Allocate the dynamic surface pool for object collision.
  */
 void alloc_surface_pools(void) {
-    gDynamicSurfacePool = main_pool_alloc(DYNAMIC_SURFACE_POOL_SIZE, MEMORY_POOL_LEFT);
+    // Single define for memory, and split it into thirds, giving 1 to the poolsize and 2 to the nodesize.
+    gDynamicSurfacePool = main_pool_alloc(DYNAMIC_SURFACE_POOL_SIZE * 0.33f, MEMORY_POOL_LEFT);
+    gDynamicSurfaceNodePool = main_pool_alloc(DYNAMIC_SURFACE_POOL_SIZE * 0.66f, MEMORY_POOL_LEFT);
+    gDynamicSurfaceNodePoolEnd = gDynamicSurfaceNodePool;
     gDynamicSurfacePoolEnd = gDynamicSurfacePool;
 
     gCCMEnteredSlide = FALSE;
@@ -573,6 +578,7 @@ void clear_dynamic_surfaces(void) {
         gSurfacesAllocated = gNumStaticSurfaces;
         gSurfaceNodesAllocated = gNumStaticSurfaceNodes;
         gDynamicSurfacePoolEnd = gDynamicSurfacePool;
+        gDynamicSurfaceNodePoolEnd = gDynamicSurfaceNodePool;
         if (sClearAllCells) {
             clear_spatial_partition(&gDynamicSurfacePartition[0][0]);
         } else {

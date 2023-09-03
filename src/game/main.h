@@ -14,6 +14,7 @@ enum VIModes {
 #define THREAD3_STACK 0x200
 #define THREAD4_STACK 0x2000
 #define THREAD5_STACK 0x2000
+#define THREAD99_STACK 0x2000
 #define THREAD6_STACK 0x400
 
 enum ThreadID {
@@ -27,6 +28,7 @@ enum ThreadID {
     THREAD_7_HVQM,
     THREAD_8_TIMEKEEPER,
     THREAD_9_DA_COUNTER,
+    THREAD_99_VIDEO,
 };
 
 struct RumbleData {
@@ -87,6 +89,7 @@ extern struct RumbleSettings gCurrRumbleSettings;
 
 extern struct VblankHandler *gVblankHandler1;
 extern struct VblankHandler *gVblankHandler2;
+extern struct VblankHandler *gVblankHandler3;
 extern struct SPTask *gActiveSPTask;
 extern s8 gAudioEnabled;
 extern u32 gNumVblanks;
@@ -96,6 +99,7 @@ extern s8 gDebugLevelSelect;
 #ifdef VANILLA_DEBUG
 extern s8 gShowDebugText;
 #endif
+extern OSThread gVideoLoopThread;
 
 void set_vblank_handler(s32 index, struct VblankHandler *handler, OSMesgQueue *queue, OSMesg *msg);
 void dispatch_audio_sptask(struct SPTask *spTask);

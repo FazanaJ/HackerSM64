@@ -39,6 +39,7 @@ OSThread gIdleThread;
 OSThread gMainThread;
 OSThread gGameLoopThread;
 OSThread gSoundThread;
+OSThread gVideoLoopThread;
 
 OSIoMesg gDmaIoMesg;
 OSMesg gMainReceivedMesg;
@@ -399,6 +400,8 @@ void thread3_main(UNUSED void *arg) {
 
     create_thread(&gGameLoopThread, THREAD_5_GAME_LOOP, thread5_game_loop, NULL, gThread5Stack + THREAD5_STACK, 10);
     osStartThread(&gGameLoopThread);
+
+    create_thread(&gVideoLoopThread, THREAD_99_VIDEO, thread99_video_loop, NULL, gThread99Stack + THREAD99_STACK, 5);
 
     while (TRUE) {
         OSMesg msg;

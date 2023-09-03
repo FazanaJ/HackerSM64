@@ -27,6 +27,7 @@ enum GraphRenderFlags {
     GRAPH_RENDER_HAS_ANIMATION      = (1 << 5), // 0x0020
     GRAPH_RENDER_SILHOUETTE         = (1 << 6), // 0x0040
     GRAPH_RENDER_OCCLUDE_SILHOUETTE = (1 << 7), // 0x0080
+    GRAPH_RENDER_PRIORITY           = (1 << 8), // 0x0100
 };
 
 /**

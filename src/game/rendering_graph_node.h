@@ -11,6 +11,7 @@ extern struct GraphNodePerspective *gCurGraphNodeCamFrustum;
 extern struct GraphNodeCamera      *gCurGraphNodeCamera;
 extern struct GraphNodeObject      *gCurGraphNodeObject;
 extern struct GraphNodeHeldObject  *gCurGraphNodeHeldObject;
+extern struct GraphNodeCamera *gTargetCam;
 #define gCurGraphNodeObjectNode ((struct Object *)gCurGraphNodeObject)
 extern u16 gAreaUpdateCounter;
 extern Vec3f globalLightDirection;
@@ -96,5 +97,6 @@ struct RenderModeContainer {
 
 void geo_process_node_and_siblings(struct GraphNode *firstNode);
 void geo_process_root(struct GraphNodeRoot *node, Vp *b, Vp *c, s32 clearColor);
+void update_graph_node_camera(struct GraphNodeCamera *gc);
 
 #endif // RENDERING_GRAPH_NODE_H

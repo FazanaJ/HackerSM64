@@ -31,6 +31,7 @@
 #include "vc_ultra.h"
 #include "profiling.h"
 #include "emutest.h"
+#include "rendering_graph_node.h"
 
 // Emulators that the Instant Input patch should not be applied to
 #define INSTANT_INPUT_BLACKLIST (EMU_CONSOLE | EMU_WIIVC | EMU_ARES | EMU_SIMPLE64 | EMU_CEN64)
@@ -60,12 +61,15 @@ s8 gEepromProbe;
 s8 gSramProbe;
 #endif
 OSMesgQueue gGameVblankQueue;
+OSMesgQueue gVideoVblankQueue;
 OSMesgQueue gGfxVblankQueue;
 OSMesg gGameMesgBuf[1];
+OSMesg gVideoMesgBuf[1];
 OSMesg gGfxMesgBuf[1];
 
 // Vblank Handler
 struct VblankHandler gGameVblankHandler;
+struct VblankHandler gVideoVblankHandler;
 
 // Buffers
 uintptr_t gPhysicalFramebuffers[3];
@@ -73,12 +77,15 @@ uintptr_t gPhysicalZBuffer;
 
 // Mario Anims and Demo allocation
 void *gMarioAnimsMemAlloc;
+void *gMarioDrawAnimsMemAlloc;
 void *gDemoInputsMemAlloc;
 struct DmaHandlerList gMarioAnimsBuf;
+struct DmaHandlerList gMarioDrawAnimsBuf;
 struct DmaHandlerList gDemoInputsBuf;
 
 // General timer that runs as the game starts
 u32 gGlobalTimer = 0;
+u32 gVideoTimer = 0;
 u8 *gAreaSkyboxStart[AREA_COUNT];
 u8 *gAreaSkyboxEnd[AREA_COUNT];
 
@@ -409,14 +416,14 @@ void render_init(void) {
     if (gEmulator & INSTANT_INPUT_BLACKLIST) {
         sRenderingFramebuffer++;
     }
-    gGlobalTimer++;
+    gVideoTimer++;
 }
 
 /**
  * Selects the location of the F3D output buffer (gDisplayListHead).
  */
 void select_gfx_pool(void) {
-    gGfxPool = &gGfxPools[gGlobalTimer % ARRAY_COUNT(gGfxPools)];
+    gGfxPool = &gGfxPools[gVideoTimer % ARRAY_COUNT(gGfxPools)];
     set_segment_base_addr(SEGMENT_RENDER, gGfxPool->buffer);
     gGfxSPTask = &gGfxPool->spTask;
     gDisplayListHead = gGfxPool->buffer;
@@ -437,13 +444,7 @@ void display_and_vsync(void) {
         gGoddardVblankCallback = NULL;
     }
     exec_display_list(&gGfxPool->spTask);
-#ifndef UNLOCK_FPS
-    osRecvMesg(&gGameVblankQueue, &gMainReceivedMesg, OS_MESG_BLOCK);
-#endif
     osViSwapBuffer((void *) PHYSICAL_TO_VIRTUAL(gPhysicalFramebuffers[sRenderedFramebuffer]));
-#ifndef UNLOCK_FPS
-    osRecvMesg(&gGameVblankQueue, &gMainReceivedMesg, OS_MESG_BLOCK);
-#endif
     // Skip swapping buffers on inaccurate emulators other than VC so that they display immediately as the Gfx task finishes
     if (gEmulator & INSTANT_INPUT_BLACKLIST) {
         if (++sRenderedFramebuffer == 3) {
@@ -453,7 +454,7 @@ void display_and_vsync(void) {
             sRenderingFramebuffer = 0;
         }
     }
-    gGlobalTimer++;
+    gVideoTimer++;
 }
 
 #if !defined(DISABLE_DEMO) && defined(KEEP_MARIO_HEAD)
@@ -719,6 +720,7 @@ void setup_game_memory(void) {
     // Create Mesg Queues
     osCreateMesgQueue(&gGfxVblankQueue, gGfxMesgBuf, ARRAY_COUNT(gGfxMesgBuf));
     osCreateMesgQueue(&gGameVblankQueue, gGameMesgBuf, ARRAY_COUNT(gGameMesgBuf));
+    osCreateMesgQueue(&gVideoVblankQueue, gVideoMesgBuf, ARRAY_COUNT(gVideoMesgBuf));
     // Setup z buffer and framebuffer
     gPhysicalZBuffer = VIRTUAL_TO_PHYSICAL(gZBuffer);
     gPhysicalFramebuffers[0] = VIRTUAL_TO_PHYSICAL(gFramebuffer0);
@@ -726,10 +728,12 @@ void setup_game_memory(void) {
     gPhysicalFramebuffers[2] = VIRTUAL_TO_PHYSICAL(gFramebuffer2);
     // Setup Mario Animations
     gMarioAnimsMemAlloc = main_pool_alloc(MARIO_ANIMS_POOL_SIZE, MEMORY_POOL_LEFT);
+    gMarioDrawAnimsMemAlloc = main_pool_alloc(MARIO_ANIMS_POOL_SIZE, MEMORY_POOL_LEFT);
     set_segment_base_addr(SEGMENT_MARIO_ANIMS, (void *) gMarioAnimsMemAlloc);
     setup_dma_table_list(&gMarioAnimsBuf, gMarioAnims, gMarioAnimsMemAlloc);
+    setup_dma_table_list(&gMarioDrawAnimsBuf, gMarioAnims, gMarioDrawAnimsMemAlloc);
 #ifdef PUPPYPRINT_DEBUG
-    set_segment_memory_printout(SEGMENT_MARIO_ANIMS, MARIO_ANIMS_POOL_SIZE);
+    set_segment_memory_printout(SEGMENT_MARIO_ANIMS * 2, MARIO_ANIMS_POOL_SIZE);
     set_segment_memory_printout(SEGMENT_DEMO_INPUTS, DEMO_INPUTS_POOL_SIZE);
 #endif
     // Setup Demo Inputs List
@@ -746,6 +750,7 @@ void setup_game_memory(void) {
  * Main game loop thread. Runs forever as long as the game continues.
  */
 void thread5_game_loop(UNUSED void *arg) {
+    s32 startThread = FALSE;
     setup_game_memory();
 #if ENABLE_RUMBLE
     init_rumble_pak_scheduler_queue();
@@ -772,7 +777,6 @@ void thread5_game_loop(UNUSED void *arg) {
 #ifdef WIDE
     gConfig.widescreen = save_file_get_widescreen_mode();
 #endif
-    render_init();
 
     while (TRUE) {
         profiler_frame_setup();
@@ -794,7 +798,6 @@ void thread5_game_loop(UNUSED void *arg) {
         }
 
         audio_game_loop_tick();
-        select_gfx_pool();
         read_controller_inputs(THREAD_5_GAME_LOOP);
         profiler_update(PROFILER_TIME_CONTROLLERS, 0);
         profiler_collision_reset();
@@ -806,20 +809,45 @@ void thread5_game_loop(UNUSED void *arg) {
 #ifdef PUPPYPRINT_DEBUG
         puppyprint_profiler_process();
 #endif
+#if 0
+        if (gPlayer1Controller->buttonPressed & L_TRIG) {
+            osStartThread(&hvqmThread);
+            osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
+        }
+#endif
+        if (startThread == FALSE) {
+            startThread = TRUE;
+            osStartThread(&gVideoLoopThread);
+        }
+        gGlobalTimer++;
+#ifndef UNLOCK_FPS
+        osRecvMesg(&gGameVblankQueue, &gMainReceivedMesg, OS_MESG_BLOCK);
+        osRecvMesg(&gGameVblankQueue, &gMainReceivedMesg, OS_MESG_BLOCK);
+#endif
+    }
+}
 
+void thread99_video_loop(UNUSED void *arg) {
+    render_init();
+    set_vblank_handler(3, &gVideoVblankHandler, &gVideoVblankQueue, (OSMesg) 1);
+    while (TRUE) {
+
+        if (gTargetCam) {
+            update_graph_node_camera(gTargetCam);
+        }
+        select_gfx_pool();
+        init_rcp(CLEAR_ZBUFFER);
+        render_game();
+        end_master_display_list();
+        alloc_display_list(0);
         display_and_vsync();
+        osRecvMesg(&gVideoVblankQueue, &gMainReceivedMesg, OS_MESG_BLOCK);
 #ifdef VANILLA_DEBUG
         // when debug info is enabled, print the "BUF %d" information.
         if (gShowDebugText) {
             // subtract the end of the gfx pool with the display list to obtain the
             // amount of free space remaining.
             print_text_fmt_int(180, 20, "BUF %d", gGfxPoolEnd - (u8 *) gDisplayListHead);
-        }
-#endif
-#if 0
-        if (gPlayer1Controller->buttonPressed & L_TRIG) {
-            osStartThread(&hvqmThread);
-            osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
         }
 #endif
     }
