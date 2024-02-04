@@ -263,7 +263,7 @@ void iterate_surfaces_envbox(Vtx *verts) {
 }
 
 // VERTCOUNT = The highest number divisible by 6, which is less than the maximum vertex buffer divided by 2.
-#define VERTCOUNT 30
+#define VERTCOUNT 54
 
 void visual_surface_display(Gfx **gfx, Vtx *verts, s32 iteration) {
     s32 vts = (iteration ? gVisualOffset : gVisualSurfaceCount);

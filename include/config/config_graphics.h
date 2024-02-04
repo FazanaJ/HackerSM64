@@ -68,13 +68,6 @@
 #define IA8_30FPS_COINS
 
 /**
- * Use .rej microcode for certain objects (experimental - only should be used when F3DEX_GBI_2 is defined).
- * For advanced users only. Does not work perfectly out the box, best used when exported actor models are
- * using 64 vertex sizes, offered by Fast64 in the microcode menu.
- */
-// #define OBJECTS_REJ
-
-/**
  * Mario's silhouette when behind solid objects/surfaces.
  * Also enables new render layers, such as LAYER_ALPHA_DECAL.
  * The number is the intensity of the silhouette, from 0-255.
