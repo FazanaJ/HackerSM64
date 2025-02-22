@@ -59,6 +59,9 @@ extern s8 gEepromProbe;
 #ifdef SRAM
 extern s8 gSramProbe;
 #endif
+#ifdef FLASH
+extern s8 gFlashProbe;
+#endif
 
 extern void (*gGoddardVblankCallback)(void);
 extern struct Controller* const gPlayer1Controller;

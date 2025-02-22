@@ -19,6 +19,7 @@
 #include "sram.h"
 #endif
 #include "puppycam2.h"
+#include "PR/os_flash.h"
 
 #ifdef UNIQUE_SAVE_DATA
 u16 MENU_DATA_MAGIC = 0x4849;
@@ -176,7 +177,161 @@ static s32 write_eeprom_data(void *buffer, s32 size) {
     return status;
 }
 #endif
+#ifdef FLASH
+s32 flash_read(u64 *data, u32 offset, u32 size) {
+    s32 blockID;
+    s32 pageCount;
+    s32 result;
+    s32 pos = offset;
+    
+    blockID = (offset / FLASH_BLOCK_SIZE);
+    pageCount = (((offset + size - 1) / FLASH_BLOCK_SIZE)) + 1;
+    pageCount -= blockID;
 
+    pos %= FLASH_BLOCK_SIZE;
+    
+    u8 *buf = (u8 *) main_pool_alloc((FLASH_BLOCK_SIZE * pageCount) + 0x10, MEMORY_POOL_LEFT);
+    buf = (u8 *) ALIGN16(buf);
+    osInvalDCache(&buf[pos], size);
+    result = osFlashReadArray(&gDmaIoMesg, OS_MESG_PRI_NORMAL, blockID, buf, pageCount, &gDmaMesgQueue);
+    osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
+    
+    bcopy(&buf[pos], data, size);
+    main_pool_free(buf);
+    return result;
+}
+
+s32 flash_write(u64 *data, u32 offset, u32 size) {
+    s32 result = 0;
+    s32 sectorCount;
+    s32 sectorOffset;
+    s32 saveSize;
+
+    sectorOffset = (offset / FLASH_BLOCK_SIZE) / FLASH_BLOCK_COUNT;
+    sectorCount = (((offset + size - 1) / FLASH_BLOCK_SIZE) / FLASH_BLOCK_COUNT) + 1;
+
+    // If you're trying to write further than the expected save region, then ignore the optimisation.
+    if (offset > sizeof(struct SaveBuffer)) {
+        saveSize = FLASH_SIZE;
+    } else {
+        saveSize = sizeof(struct SaveBuffer);
+    }
+
+    u8 *buf = (u8 *) main_pool_alloc((FLASH_SECTOR_SIZE) + 0x10, MEMORY_POOL_LEFT);
+    buf = (u8 *) ALIGN16(buf);
+
+    for (int i = sectorOffset; i < sectorCount; i++, sectorOffset += FLASH_SECTOR_SIZE) {
+        s32 pos;
+        s32 length;
+        s32 iter;
+        f32 iterF;
+        s32 writeSize;
+        s32 sectorSize = FLASH_SECTOR_SIZE * sectorOffset;
+        OSIoMesg msg;
+        osInvalDCache(buf, FLASH_SECTOR_SIZE);
+        osFlashReadArray(&msg, OS_MESG_PRI_NORMAL, sectorOffset, buf, FLASH_BLOCK_SIZE, &gDmaMesgQueue);
+        osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
+        
+        pos = offset;
+        length = size;
+
+        if (pos >= sectorSize && pos + length >= sectorSize) {
+            pos -= sectorSize;
+        } else {
+            if (pos + length >= sectorSize) {
+                length = sectorSize - pos;
+            }
+
+            if (pos >= sectorSize) {
+                pos -= sectorSize;
+                offset += pos;
+            }
+        }
+
+        // Try and reduce writes by only writing as far as the game actually expects save data.
+        if (saveSize > FLASH_SECTOR_SIZE) {
+            writeSize = FLASH_SECTOR_SIZE;
+            saveSize -= FLASH_SECTOR_SIZE;
+        } else {
+            writeSize = saveSize;
+        }
+
+        iterF = (f32) writeSize / (f32) FLASH_BLOCK_SIZE;
+        iter = iterF;
+        if (iterF > iter) {
+            iter++;
+        }
+
+        result = osFlashSectorErase(sectorOffset);
+        bcopy(data, &buf[pos], length);
+        osWritebackDCache(&buf[pos], length);
+        for (int j = 0; j < iter; j++) {
+            result = osFlashWriteBuffer(&gDmaIoMesg, OS_MESG_PRI_NORMAL, buf + (j * FLASH_BLOCK_SIZE), &gDmaMesgQueue);
+            osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
+            result = osFlashWriteArray(sectorOffset + j);
+        }
+    }
+    
+    main_pool_free(buf);
+    return result;
+}
+
+/**
+ * Read from Flashram to a given address.
+ * The Flashram address is computed using the offset of the destination address from gSaveBuffer.
+ * Try at most 4 times, and return 0 on success. On failure, return the status returned from
+ * flash_read. It also returns 0 if Flashram isn't loaded correctly in the system.
+ */
+static s32 read_eeprom_data(void *buffer, s32 size) {
+    s32 status = 0;
+
+    if (gFlashProbe != 0) {
+        s32 triesLeft = 4;
+        u32 offset = (u32)((u8 *) buffer - (u8 *) &gSaveBuffer);
+
+        do {
+#if ENABLE_RUMBLE
+            block_until_rumble_pak_free();
+#endif
+            triesLeft--;
+            status = flash_read(buffer, offset, ALIGN4(size));
+#if ENABLE_RUMBLE
+            release_rumble_pak_control();
+#endif
+        } while (triesLeft > 0 && status != 0);
+    }
+
+    return status;
+}
+
+/**
+ * Write data to SRAM.
+ * The SRAM address is computed using the offset of the source address from gSaveBuffer.
+ * Try at most 4 times, and return 0 on success. On failure, return the status returned from
+ * nuPiWriteSram. Unlike read_eeprom_data, return 1 if SRAM isn't loaded.
+ */
+static s32 write_eeprom_data(void *buffer, s32 size) {
+    s32 status = 1;
+
+    if (gFlashProbe != 0) {
+        s32 triesLeft = 4;
+        u32 offset = (u32)((u8 *) buffer - (u8 *) &gSaveBuffer);
+
+        do {
+#if ENABLE_RUMBLE
+            block_until_rumble_pak_free();
+#endif
+            triesLeft--;
+            status = flash_write(buffer, offset, ALIGN4(size));
+#if ENABLE_RUMBLE
+            release_rumble_pak_control();
+#endif
+        } while (triesLeft > 0 && status != 0);
+    }
+
+    return status;
+}
+#endif
 
 /**
  * Sum the bytes in data to data + size - 2. The last two bytes are ignored

@@ -56,6 +56,9 @@ s8 gEepromProbe;
 #ifdef SRAM
 s8 gSramProbe;
 #endif
+#ifdef FLASH
+s8 gFlashProbe;
+#endif
 OSMesgQueue gGameVblankQueue;
 OSMesgQueue gGfxVblankQueue;
 OSMesg gGameMesgBuf[1];
@@ -682,6 +685,17 @@ void init_controllers(void) {
 #endif
 #ifdef SRAM
     gSramProbe = nuPiInitSram();
+#endif
+#ifdef FLASH
+    osFlashInit();
+    u32 flashType;
+    u32 flashID;
+    // Writes zero if not found, so simply check they're nonzero.
+    osFlashReadId(&flashType, &flashID);
+    if (flashType | flashID) {
+        gFlashProbe = 1;
+    }
+    append_puppyprint_log("FlashType: %d, flashID: %d\n", flashType, flashID);
 #endif
 
     // Loop over the 4 ports and link the controller structs to the appropriate status and pad.

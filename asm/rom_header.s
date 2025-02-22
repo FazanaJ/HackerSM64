@@ -41,7 +41,7 @@
     .byte  0x22                 /* Version */
 #elif defined(SRAM768K)
     .byte  0x42                 /* Version */
-#elif defined(FLASHRAM)
+#elif defined(FLASH)
     .byte  0x52                 /* Version */
 #else
     .byte  0x12                 /* Version */

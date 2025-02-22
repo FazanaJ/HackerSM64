@@ -9,7 +9,9 @@
 
 #include "course_table.h"
 
-#if defined(SRAM)
+#if defined(FLASH)
+    #define EEPROM_SIZE 0x20000
+#elif defined(SRAM)
     #define EEPROM_SIZE 0x8000
 #elif defined(EEP16K)
     #define EEPROM_SIZE 0x800
